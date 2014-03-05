@@ -2,7 +2,6 @@ package edu.uchicago.proprio.draggr;
 
 import edu.uchicago.proprio.draggr.artools.DraggrAR;
 import edu.uchicago.proprio.draggr.artools.DraggrGLView;
-import android.R;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.app.Activity;

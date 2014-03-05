@@ -316,6 +316,14 @@ public class DraggrARSession implements UpdateCallbackInterface
         Vuforia.onSurfaceCreated();
     }
     
+    public int getScreenWidth() {
+    	return mScreenWidth;
+    }
+    
+    public int getScreenHeight() {
+    	return mScreenHeight;
+    }
+    
     // An async task to initialize Vuforia asynchronously.
     private class InitVuforiaTask extends AsyncTask<Void, Integer, Boolean>
     {
