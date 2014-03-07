@@ -148,8 +148,24 @@ public class Server extends Thread {
 			s.start();
 			BufferedReader br = new BufferedReader(
 					new InputStreamReader(System.in));
-			while (br.readLine() != null)
-				;
+			String cmd;
+			Device localDevice = new Device(args[0]);
+			if (!localDevice.tryConnect()) {
+				System.out.println("error connecting device");
+			} else {
+				while ((cmd = br.readLine()) != null) {
+					if (cmd.startsWith("LIST_FILES")) {
+						for (String f : localDevice.listFiles(""))
+							System.out.println(f);
+					} else if (cmd.startsWith("TRANSFER")) {
+						String[] cmds = cmd.split(" ");
+						localDevice.transfer(cmds[1], localDevice);
+					} else {
+						System.out.println("Sorry, could you repeat that?");
+					}
+				}
+				localDevice.close();
+			}
 			s.close();
 			s.join();
 		} catch (Exception e) {
