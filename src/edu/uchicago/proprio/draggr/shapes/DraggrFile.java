@@ -4,9 +4,17 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
+import com.qualcomm.vuforia.Matrix44F;
+import com.qualcomm.vuforia.Vec2F;
+import com.qualcomm.vuforia.Vec3F;
+
+import edu.uchicago.proprio.draggr.artools.SampleMath;
+
 import android.R.bool;
+import android.content.res.Resources;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 // representation of a file on the screen that is drawn by OpenGL
@@ -27,7 +35,6 @@ public class DraggrFile {
 	private Texture mTexture;
 	private int mTexUniformHandle;
 	private int mTexCoordHandle;
-	private int mTexDataHandle;
 	private int mMVPMatrixHandle;
 	
 	//private bool onScreen;
@@ -57,13 +64,22 @@ public class DraggrFile {
 	private float upY;
 	
 	static float folderCoords[] = {
-		-0.1f, 0.1f, 0.0f,
-		0.1f, -0.1f, 0.0f,
-		0.1f, 0.1f, 0.0f,
-		-0.1f, 0.1f, 0.0f,
-		-0.1f, -0.1f, 0.0f,
-		0.1f, -0.1f, 0.0f
+		-0.2f, 0.2f, 0.0f,
+		0.2f, -0.2f, 0.0f,
+		0.2f, 0.2f, 0.0f,
+		-0.2f, 0.2f, 0.0f,
+		-0.2f, -0.2f, 0.0f,
+		0.2f, -0.2f, 0.0f
 	};
+	
+	/*static float folderCoords[] = {
+		-0.5f, 0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		0.5f, 0.5f, 0.0f,
+		-0.5f, 0.5f, 0.0f,
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f
+	};*/
 	
 	static float texCoords[] = {
 		0.0f, 1.0f,
@@ -74,8 +90,9 @@ public class DraggrFile {
 		1.0f, 0.0f
 	};
 	
+	public Matrix44F mModelViewMatrix = new Matrix44F();
+	public Matrix44F mProjectionMatrix = new Matrix44F();
 	private float[] mTranslationMatrix = new float[16];
-	private float[] mOrigPositionMatrix = new float[16];
 	private float[] mMVPMatrix = new float[16];
 	
 	float color[] = { 0.5019608f, 0.5019608f, 0.5019608f, 1.0f };
@@ -104,21 +121,37 @@ public class DraggrFile {
 		GLES20.glLinkProgram(mProgram);
 		
 		// initialize translation matrix...
-		Matrix.setIdentityM(mOrigPositionMatrix, 0);
-		Matrix.translateM(mOrigPositionMatrix, 0, -1 * x, y, 0);
 		resetPosition();
 		
 		// set the boundaries of this file in GL coordinate space
-		leftX = -0.1f + x;
-		rightX = 0.1f + x;
-		downY = -0.1f + y;
-		upY = 0.1f + y;
+		leftX = -0.2f;
+		rightX = 0.2f;
+		downY = -0.2f;
+		upY = 0.2f;
 		
-		Log.d(LOGTAG, "File bounded by : (" + leftX + "," + rightX + ") (" + downY + "," + upY + ")");
+		//Log.d(LOGTAG, "File bounded by : (" + leftX + "," + rightX + ") (" + downY + "," + upY + ")");
 	}
 	
 	public void setTexture(Texture t) {
 		mTexture = t;
+	}
+	
+	public boolean onTouch(float x, float y) {
+		Vec3F intersection;
+		
+		DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
+        intersection = SampleMath.getPointToPlaneIntersection(SampleMath
+            .Matrix44FInverse(mProjectionMatrix),
+            mModelViewMatrix, metrics.widthPixels, metrics.heightPixels,
+            new Vec2F(x, y), new Vec3F(0, 0, 0), new Vec3F(0, 0, 1));
+        
+        float touchedX = intersection.getData()[0];
+        float touchedY = intersection.getData()[1];
+        Log.d(LOGTAG, "Intersects: " + intersection.getData()[0] + "," + intersection.getData()[1]);
+        if(touchedX >= leftX && touchedX <= rightX && touchedY >= downY && touchedY <= upY)
+        	return true;
+        return false;
+        	//Log.d(LOGTAG, "TOUCHHHHH KITAAAAA");
 	}
 	
 	public boolean isTouched(float touchX, float touchY) {
@@ -152,7 +185,7 @@ public class DraggrFile {
 		mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
 		
 		// translate if necessary
-		mMVPMatrix = mvpMatrix;
+		//mMVPMatrix = mvpMatrix;
 		Matrix.multiplyMM(mMVPMatrix, 0, mvpMatrix, 0, mTranslationMatrix, 0);
 		GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
 		
@@ -166,7 +199,8 @@ public class DraggrFile {
 	}
 	
 	public void resetPosition() {
-		Matrix.translateM(mTranslationMatrix, 0, mOrigPositionMatrix, 0, 0, 0, 0);
+		//Matrix.translateM(mTranslationMatrix, 0, mOrigPositionMatrix, 0, 0, 0, 0);
+		Matrix.setIdentityM(mTranslationMatrix, 0);
 	}
 		
 	private int loadShader(int type, String shaderCode) {

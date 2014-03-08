@@ -1,12 +1,19 @@
 package edu.uchicago.proprio.draggr.artools;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import com.qualcomm.vuforia.ImageTarget;
+import com.qualcomm.vuforia.Matrix44F;
 import com.qualcomm.vuforia.Renderer;
 import com.qualcomm.vuforia.State;
+import com.qualcomm.vuforia.Tool;
+import com.qualcomm.vuforia.Trackable;
+import com.qualcomm.vuforia.TrackableResult;
 import com.qualcomm.vuforia.Vuforia;
 
 import edu.uchicago.proprio.draggr.shapes.DraggrFolderBase;
@@ -34,10 +41,12 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	boolean mIsActive = false;
 	
 	private DraggrFolderBase mFolder;
+	private DraggrFolderBase mDraggedFolder = null;
+	private HashSet<DraggrFolderBase> onScreenFolders = new HashSet<DraggrFolderBase>();
 	
-	private final float[] mMVPMatrix = new float[16];
-	private final float[] mProjectionMatrix = new float[16];
-	private final float[] mViewMatrix = new float[16];
+	// these two matrices are used to draw the file being dragged
+	private final float[] mDragProjMatrix = new float[16];
+	private final float[] mDragViewMatrix = new float[16];
 	
 	public DraggrRenderer(DraggrAR activity,
 			DraggrARSession session) {
@@ -51,19 +60,45 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	
 	// pass world coordinates to mFolder
 	public void onTouch(float touchX, float touchY) {
-		mFolder.onTouch(screenToWorld(touchX, touchY));
+		if(onScreenFolders.isEmpty())
+			return;
+		Iterator<DraggrFolderBase> itr = onScreenFolders.iterator();
+		while(itr.hasNext()) {
+			DraggrFolderBase temp = (DraggrFolderBase) itr.next();
+			/*temp.onTouch(GLTools.screenToWorld(touchX, touchY, 
+					vuforiaAppSession.getScreenWidth(), vuforiaAppSession.getScreenHeight(),
+					mDragProjMatrix, mDragViewMatrix));*/
+			temp.onTouch(new PointF(touchX,touchY));
+		}
 	}
 	
 	public void startDrag(float touchX, float touchY) {
-		mFolder.startDrag(screenToWorld(touchX, touchY));
+		if(onScreenFolders.isEmpty())
+			return;
+		Iterator<DraggrFolderBase> itr = onScreenFolders.iterator();
+		while(itr.hasNext()) {
+			DraggrFolderBase temp = (DraggrFolderBase) itr.next();
+			if(temp.startDrag(GLTools.screenToWorld(touchX, touchY, 
+					vuforiaAppSession.getScreenWidth(), vuforiaAppSession.getScreenHeight(),
+					mDragProjMatrix, mDragViewMatrix))) {
+					mDraggedFolder = temp;
+					break;
+			}
+		}
 	}
 	
 	public void inDrag(float touchX, float touchY) {
-		mFolder.inDrag(screenToWorld(touchX, touchY));
+		if(mDraggedFolder!= null)
+			mDraggedFolder.inDrag(GLTools.screenToWorld(touchX, touchY, 
+					vuforiaAppSession.getScreenWidth(), vuforiaAppSession.getScreenHeight(),
+					mDragProjMatrix, mDragViewMatrix));
+		//mFolder.inDrag(screenToWorld(touchX, touchY));
 	}
 	
 	public void endDrag() {
-		mFolder.releaseFile();
+		if(mDraggedFolder != null)
+			mDraggedFolder.releaseFile();
+		mDraggedFolder = null;
 	}
 	
 	@Override
@@ -76,8 +111,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		// TODO Auto-generated method stub
 		GLES20.glViewport(0, 0, width, height);
 		float ratio = (float) width / height;
-		Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
-		//Matrix.orthoM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, -1, 1);
+		Matrix.frustumM(mDragProjMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
 		vuforiaAppSession.onSurfaceChanged(width, height);
 	}
 
@@ -90,7 +124,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	
 	// shamelessly ripped from Vuforia sample app
 	private void initRendering() {
-		mFolder = new DraggrFolderBase();
+		mFolder = new DraggrFolderBase("womp");
 		
 		mRenderer = Renderer.getInstance();
 		
@@ -114,7 +148,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		mFolder.setFileTexture(mTextures.firstElement());
 
 		// set up view matrix
-		Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+		Matrix.setLookAtM(mDragViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 		
 		mActivity.loadingDialogHandler
         	.sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
@@ -123,24 +157,56 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	private void renderFrame() {
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 		State state = mRenderer.begin();
+		// make a shallow copy
 		mRenderer.drawVideoBackground();
 		
 		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-		//GLES20.glEnable(GLES20.GL_BLEND);
-		//GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-		Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
-		if(state.getNumTrackableResults() > 0)
+		if(state.getNumTrackableResults() <= 0)
+		{
+			onScreenFolders.clear();
+		}
+		for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx ++)
+		{
+			// TODO: figure out a way to remove folders that aren't on screen
+			onScreenFolders.add(mFolder);
+			TrackableResult result = state.getTrackableResult(tIdx);
+			Trackable trackable = result.getTrackable();
+			//Log.d(LOGTAG, trackable.getUserData().toString());
+			Matrix44F modelViewMatrix_Vuforia = Tool
+	                .convertPose2GLMatrix(result.getPose());
+	        float[] modelViewMatrix = modelViewMatrix_Vuforia.getData();
+	        
+	        // DraggrFolderBase constructs the appropriately translated
+	        // projection matrix for each individual file, we just provide it
+	        // with the pose, as well as the image target's size, so the files
+	        // can be scaled accordingly
+            //float[] modelViewProjection = new float[16];
+            ImageTarget t = (ImageTarget) trackable;
+            /*float tX = t.getSize().getData()[0];
+            float tY = t.getSize().getData()[1];
+            Matrix.translateM(modelViewMatrix, 0, tX / 2.0f, tY / 2.0f, 3.0f);
+            Log.d(LOGTAG, t.getSize().getData()[0] + "," + t.getSize().getData()[1]);
+            Matrix.scaleM(modelViewMatrix, 0, t.getSize().getData()[0] * 0.2f, 
+            		t.getSize().getData()[1] * 0.2f, 1.0f);*/
+            //Matrix.multiplyMM(modelViewProjection, 0, 
+            //		vuforiaAppSession.getProjectionMatrix().getData(), 0, modelViewMatrix, 0);
+            //mFolder.onScreen();
+            mFolder.draw(modelViewMatrix, vuforiaAppSession.getProjectionMatrix().getData(), t);
+		}
+		
+		if(mDraggedFolder != null)
+			mDraggedFolder.draw(mDragProjMatrix, mDragViewMatrix);
+		/*if(state.getNumTrackableResults() > 0)
 			mFolder.onScreen();
 		else
-			mFolder.offScreen();
+			mFolder.offScreen();*/
 			//mFolder.draw(mMVPMatrix);
-		//Matrix.multiplyMM(mMVPMatrix, 0, vuforiaAppSession.getProjectionMatrix().getData(), 
-		//		0, mViewMatrix, 0);
-		mFolder.draw(mMVPMatrix);
+		
+		GLES20.glDisable(GLES20.GL_DEPTH_TEST);
 		mRenderer.end();
 	}
 	
-	private PointF screenToWorld(float touchX, float touchY) {
+	/*private PointF screenToWorld(float touchX, float touchY) {
 		float screenWidth = (float) vuforiaAppSession.getScreenWidth();
 		float screenHeight = (float) vuforiaAppSession.getScreenHeight();
 		
@@ -157,7 +223,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		normalizedInPoint[1] = (float) ((oglTouchY) * 2.0f / screenHeight - 1.0);
 		normalizedInPoint[2] = - 1.0f;
 		normalizedInPoint[3] = 1.0f;
-		Matrix.multiplyMM(transformMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+		Matrix.multiplyMM(transformMatrix, 0, mDragProjMatrix, 0, mDragViewMatrix, 0);
 		Matrix.invertM(invertedMatrix, 0, transformMatrix, 0);
 		
 		Matrix.multiplyMV(outPoint, 0, invertedMatrix, 0, normalizedInPoint, 0);
@@ -171,7 +237,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		float worldY = outPoint[1] / outPoint[3];
 		
 		return new PointF(worldX, worldY);
-	}
+	}*/
 	
     public static void checkGlError(String glOperation) {
         int error;
