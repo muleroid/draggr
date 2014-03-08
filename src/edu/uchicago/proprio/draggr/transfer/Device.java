@@ -62,6 +62,11 @@ public class Device {
 					
 					/* Scan through the 256 closest addresses for a match */
 					byte[] addr = a.getAddress();
+					/* TODO: TEMPORARY */
+					addr[0] = 10;
+					addr[1] = (byte) 150;
+					addr[2] = 121;
+					/* END TEMPORARY */
 					for (byte i = 0; i < 256; i++) {
 						addr[3] = i;
 						try {
