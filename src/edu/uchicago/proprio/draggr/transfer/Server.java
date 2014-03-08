@@ -4,6 +4,7 @@ import static edu.uchicago.proprio.draggr.transfer.Server.LogLevel.*;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
@@ -19,7 +20,7 @@ public class Server extends Thread {
 	private Set<PassiveHandler> handlers;
 	private LogLevel logLevel;
 	private String motd; /* message of the day */
-	private File root; /* location of the files under management */
+	private File root, thumbs, previews; /* location of the files under management */
 	
 	public enum LogLevel {
 		FATAL, ERROR, WARN, INFO, DEBUG, TRACE;
@@ -47,6 +48,17 @@ public class Server extends Thread {
 	
 	public void setRoot(String r) {
 		root = new File(r);
+		if (!root.exists())
+			if (!root.mkdirs())
+				log(ERROR, "Could not create root directory");
+		thumbs = new File(r + "/thumbs");
+		if (!thumbs.exists())
+			if (!thumbs.mkdir())
+				log(ERROR, "Could not create thumbnails directory");
+		previews = new File(r + "/previews");
+		if (!previews.exists())
+			if (!previews.mkdir())
+				log(ERROR, "Could not create previews directory");
 	}
 	
 	public void setLogLevel(LogLevel l) {
@@ -66,13 +78,16 @@ public class Server extends Thread {
 		return motd;
 	}
 	
-	String listFiles(String filter) {
-		String r = "";
-		for (File f:  root.listFiles()) {
-			if (f.getName().contains(filter))
-				r += f.getName() + "\n";
-		}
-		return r;
+	File[] listFiles(final String filter) {
+		log(TRACE, "listFiles()");
+		FileFilter ff = new FileFilter () {
+			public boolean accept(File f) {
+				return f.getName().contains(filter)
+						&& !f.getName().equals("thumbs")
+						&& !f.getName().equals("previews");
+			}
+		};
+		return root.listFiles(ff);
 	}
 	
 	File getFile(String filename) {
@@ -83,8 +98,32 @@ public class Server extends Thread {
 		return null;
 	}
 	
+	File getThumbnail(String filename) {
+		for (File f : thumbs.listFiles()) {
+			if (f.getName().equals(filename))
+				return f;
+		}
+		return null;
+	}
+	
+	File getPreview(String filename) {
+		for (File f : previews.listFiles()) {
+			if (f.getName().equals(filename))
+				return f;
+		}
+		return null;
+	}
+	
 	File createFile(String filename) {
 		return new File(root.getAbsolutePath() + "/" + filename);
+	}
+
+	File createThumbnail(String filename) {
+		return new File(thumbs.getAbsolutePath() + "/" + filename);
+	}
+
+	File createPreview(String filename) {
+		return new File(previews.getAbsolutePath() + "/" + filename);
 	}
 	
 	public void run() {
@@ -94,6 +133,7 @@ public class Server extends Thread {
 		}
 		
 		log(INFO, "Server starting on port " + passive.getLocalPort());
+		log(INFO, "Name: " + this.getName());
 		log(INFO, "MOTD: " + motd);
 		log(INFO, "Root: " + root.getAbsolutePath());
 		
@@ -102,7 +142,7 @@ public class Server extends Thread {
 				Socket s = passive.accept();
 				log(INFO, "Got connection from " + s.getInetAddress());
 				PassiveHandler handler = new PassiveHandler(
-						"passive-" + Integer.toString(s.getLocalPort()), s, this);
+						"passive-" + Integer.toString(s.getPort()), s, this);
 				handlers.add(handler);
 				handler.start();
 			}
@@ -144,7 +184,7 @@ public class Server extends Thread {
 		try {
 			System.out.println("starting");
 			Server s = new Server(args[0], args[1], args[2]);
-			s.setLogLevel(DEBUG);
+			s.setLogLevel(TRACE);
 			s.start();
 			BufferedReader br = new BufferedReader(
 					new InputStreamReader(System.in));
@@ -160,6 +200,14 @@ public class Server extends Thread {
 					} else if (cmd.startsWith("TRANSFER")) {
 						String[] cmds = cmd.split(" ");
 						localDevice.transfer(cmds[1], localDevice);
+					} else if (cmd.startsWith("PREVIEW")) {
+						String[] cmds = cmd.split(" ");
+						File f = localDevice.preview(cmds[1]);
+						System.out.println("received! " + f.length());
+					} else if (cmd.startsWith("THUMB")) {
+						String[] cmds = cmd.split(" ");
+						File f = localDevice.thumbnail(cmds[1]);
+						System.out.println("found! " + f.length());
 					} else {
 						System.out.println("Sorry, could you repeat that?");
 					}
@@ -169,7 +217,7 @@ public class Server extends Thread {
 			s.close();
 			s.join();
 		} catch (Exception e) {
-			System.out.println("error!\n" + e);
+			e.printStackTrace();
 			System.out.println("usage: java Server.java "
 					+ "<server_name> <path_to_root> <motd>");
 		}

@@ -4,56 +4,49 @@ import static edu.uchicago.proprio.draggr.transfer.Server.LogLevel.*;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
 public class PassiveHandler extends Thread {
-	private Socket socket;
-	private DataInputStream in;
-	private DataOutputStream out;
+	private Connector conn;
 	private Server parent;
-	
-	public enum Command {
-		/* Ensure there are less than 256 of these.
-		 * They are serialized as a single byte.
-		 */
-		NAME, MOTD, TRANSFER, LIST_FILES, UPLOAD, CLOSE;
-	}
 	
 	public PassiveHandler(String name, Socket socket, Server parent) 
 			throws IOException {
 		super(name);
-		this.socket = socket;
-		in = new DataInputStream(socket.getInputStream());
-		out = new DataOutputStream(socket.getOutputStream());
+		this.conn = new Connector(socket);
 		this.parent = parent;
 	}
 	
 	public void close() throws IOException {
-		socket.close();
+		conn.close();
 	}
 	
 	public void run() {
 		boolean done = false;
 		while (!done) {
 			try {
-				switch (recvCommand()) {
+				switch (conn.recvCommand()) {
 				case NAME:
-					sendString(parent.getName());
+					conn.sendString(parent.getName());
 					break;
 				case MOTD:
-					sendString(parent.getMotd());
+					conn.sendString(parent.getMotd());
 					break;
 				case LIST_FILES:
-					String filter = recvString();
-					sendString(parent.listFiles(filter));
+					handleListFiles();
 					break;
 				case TRANSFER:
 					handleTransfer();
 					break;
 				case UPLOAD:
 					handleUpload();
+					break;
+				case PREVIEW:
+					String filename = conn.recvString();
+					conn.sendFile(parent.getPreview(filename));
 					break;
 				case CLOSE:
 					done = true;
@@ -66,39 +59,41 @@ public class PassiveHandler extends Thread {
 			}
 		}
 		
+		log(INFO, "Closing connection " + conn);
 		try { this.close(); }
 		catch (IOException e) {}
 	}
 	
 	public String toString() {
-		return "PassiveHandler for device connected to local port"
-				+ socket.getLocalPort();
+		return "PassiveHandler for " + conn;
 	}
 
 	private void log(Server.LogLevel level, String msg) {
 		parent.log(level, msg);
 	}
 	
-	private Command recvCommand() throws IOException {
-		return Command.values()[in.readByte()];
-	}
-	
-	private void sendString(String s) throws IOException {
-		out.writeInt(s.length());
-		out.write(s.getBytes("UTF-8"));
-	}
-	
-	private String recvString() throws IOException {
-		int len = in.readInt();
-		byte[] b = new byte[len];
-		in.readFully(b);
-		return new String(b, "UTF-8");
+	private void handleListFiles() throws IOException {
+		log(TRACE, "handleListFiles()");
+		String filter = conn.recvString();
+		File[] files = parent.listFiles(filter);
+		
+		String r = "";
+		for (File f : files)
+			r += f.getName() + "\n";
+		conn.sendString(r);
+		log(TRACE, "sent file list:\n" + r);
+		
+		for (File f : files) {
+			File t = parent.getThumbnail(f.getName());
+			log(TRACE, "sending thumbnail: " + f.getName() + " " + t.length());
+			conn.sendFile(t);
+		}
 	}
 	
 	private void handleTransfer() throws IOException {
-		String deviceName = recvString();
-		int port = in.readInt();
-		String filename = recvString();
+		String deviceName = conn.recvString();
+		int port = conn.recvInt();
+		String filename = conn.recvString();
 		
 		/* From here on, we catch I/O errors, because we do not want
 		 * connection problems with the new device to cause the
@@ -107,7 +102,10 @@ public class PassiveHandler extends Thread {
 		Device otherDevice = new Device(deviceName, port);
 		if (otherDevice.tryConnect()) {
 			try {
-				otherDevice.upload(filename, parent.getFile(filename));
+				otherDevice.upload(filename,
+						parent.getFile(filename),
+						parent.getThumbnail(filename),
+						parent.getPreview(filename));
 				otherDevice.close();
 				return;
 			} catch (IOException e) {
@@ -118,18 +116,9 @@ public class PassiveHandler extends Thread {
 	}
 	
 	private void handleUpload() throws IOException {
-		String filename = recvString();
-		FileOutputStream s = new FileOutputStream(
-				parent.createFile(filename));
-		long bytesLeft = in.readLong();
-		
-		byte[] buf = new byte[4096];
-		while (bytesLeft > 0) {
-			int bytesRead = in.read(buf);
-			s.write(buf, 0, bytesRead);
-			bytesLeft -= bytesRead;
-		}
-		
-		s.close();
+		String filename = conn.recvString();
+		conn.recvFile(parent.createFile(filename));
+		conn.recvFile(parent.createThumbnail(filename));
+		conn.recvFile(parent.createPreview(filename));
 	}
 }

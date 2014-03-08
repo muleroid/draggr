@@ -1,28 +1,26 @@
 package edu.uchicago.proprio.draggr.transfer;
 
-import static edu.uchicago.proprio.draggr.transfer.PassiveHandler.Command.*;
+import static edu.uchicago.proprio.draggr.transfer.Connector.Command.*;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
-import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 
 
 public class Device {
-	private Socket socket;
-	private DataInputStream in;
-	private DataOutputStream out;
+	private Connector conn;
 	private String name;
 	private int port;
+	private Map<String,File> thumbnails;
+	private Map<String,File> previews;
 	
 	public Device (String name) {
 		this(name, Server.defaultPort);
@@ -31,10 +29,13 @@ public class Device {
 	public Device (String name, int port) {
 		this.name = name;
 		this.port = port;
+		thumbnails = new HashMap<String,File>();
+		previews = new HashMap<String,File>();
+		conn = new Connector();
 	}
 	
 	public boolean isConnected() {
-		return socket != null && socket.isConnected() && !socket.isClosed();
+		return conn.isConnected();
 	}
 	
 	public String getName() {
@@ -65,91 +66,92 @@ public class Device {
 					/* TODO: TEMPORARY */
 					addr[0] = 10;
 					addr[1] = (byte) 150;
-					addr[2] = 121;
+					addr[2] = 109;
 					/* END TEMPORARY */
-					for (byte i = 0; i < 256; i++) {
-						addr[3] = i;
+					for (int i = 0; i < 256; i++) {
+						addr[3] = (byte) i;
 						try {
 							InetSocketAddress aa = new InetSocketAddress(
 									InetAddress.getByAddress(addr), this.port);
-							this.socket = new Socket();
-							socket.connect(aa, 20); // TODO: pick a good timeout
-							in = new DataInputStream(socket.getInputStream());
-							out = new DataOutputStream(socket.getOutputStream());
-							out.writeByte(NAME.ordinal());
-							if (recvString().equals(this.name))
+							// TODO pick a good timeout
+							if (conn.connect(aa, 20, this.name)) {
 								return true;
-							socket.close();
+							}
 						} catch (UnknownHostException x) {
-							
-						} catch (IOException x) {
-							
 						}
 					}
 				}
 			}
 		}
 		
-		socket = null; in = null; out = null;
 		return false;
 	}
 	
 	public String motd() throws IOException {
-		out.writeByte(MOTD.ordinal());
-		return recvString();
+		conn.sendCommand(MOTD);
+		return conn.recvString();
 	}
 	
 	public String[] listFiles(String filter) throws IOException {
-		out.writeByte(LIST_FILES.ordinal());
-		sendString(filter);
-		return recvString().split("\n");
+		conn.sendCommand(LIST_FILES);
+		conn.sendString(filter);
+		String[] files = conn.recvString().split("\n");
+		for (String filename : files) {
+			File f = File.createTempFile(name + "_", ".thumb");
+			conn.recvFile(f);
+			File old = thumbnails.put(filename, f);
+			if (old != null) {
+				old.delete();
+			}
+		}
+		return files;
 	}
 	
 	public void transfer(String filename, Device otherDevice)
 			throws IOException {
-		out.writeByte(TRANSFER.ordinal());
-		sendString(otherDevice.getName());
-		out.writeInt(otherDevice.getPort());
-		sendString(filename);
+		conn.sendCommand(TRANSFER);
+		conn.sendString(otherDevice.getName());
+		conn.sendInt(otherDevice.getPort());
+		conn.sendString(filename);
 	}
 	
-	public void upload(String filename, File f) throws IOException {
-		long bytesLeft = f.length();
-		out.writeByte(UPLOAD.ordinal());
-		sendString(filename);
-		out.writeLong(bytesLeft);
-		FileInputStream s = new FileInputStream(f);
-		
-		byte[] buf = new byte[4096];
-		while (bytesLeft > 0) {
-			int bytesRead = s.read(buf);
-			out.write(buf, 0, bytesRead);
-			bytesLeft -= bytesRead;
+	public void upload(String filename, File f, File thumb, File preview)
+			throws IOException {
+		conn.sendCommand(UPLOAD);
+		conn.sendString(filename);
+		conn.sendFile(f);
+		conn.sendFile(thumb);
+		conn.sendFile(preview);
+	}
+	
+	public File thumbnail(String filename) {
+		return thumbnails.get(filename);
+	}
+	
+	public File preview(String filename) throws IOException {
+		File f = previews.get(filename);
+		if (f == null) {
+			f = File.createTempFile(name + "_", ".preview");
+			conn.sendCommand(PREVIEW);
+			conn.sendString(filename);
+			conn.recvFile(f);
+			previews.put(filename, f);
 		}
-		
-		s.close();
+		return f;
 	}
-	
+
 	public void close() throws IOException {
-		out.writeByte(CLOSE.ordinal());
-		socket.close();
+		conn.sendCommand(CLOSE);
+		conn.close();
+		for (File f : thumbnails.values()) {
+			f.delete();
+		}
+		for (File f : previews.values()) {
+			f.delete();
+		}
 	}
 
 	public String toString() {
-		return "Device connected to local port " + socket.getLocalPort();
-	}
-	
-	/* TODO: remove the code duplication with PassiveHandler class */
-	
-	private String recvString() throws IOException {
-		int len = in.readInt();
-		byte[] b = new byte[len];
-		in.readFully(b);
-		return new String(b, "UTF-8");
-	}
-
-	private void sendString(String s) throws IOException {
-		out.writeInt(s.length());
-		out.write(s.getBytes("UTF-8"));
+		return "Device for " + conn;
 	}
 }
