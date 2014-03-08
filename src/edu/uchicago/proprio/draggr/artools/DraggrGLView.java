@@ -64,8 +64,7 @@ public class DraggrGLView extends GLSurfaceView {
 			public boolean onLongClick(View v) {
 				String msg = "onLongClick at: " + lastX + ", " + lastY;
 				Log.d(LOGTAG, msg);
-				if(mRenderer.isTouched(lastX, lastY))
-					Log.d(LOGTAG, "Touched!");
+				mRenderer.onTouch(lastX, lastY);
 				// create the clipdata
 				ClipData.Item item = new ClipData.Item("test");
 				ClipData dragData = new ClipData("herp", 
@@ -89,16 +88,26 @@ public class DraggrGLView extends GLSurfaceView {
 		public boolean onDrag(View v, DragEvent event) {
 			switch(event.getAction()) {
 			case DragEvent.ACTION_DRAG_STARTED:
-				//Log.d(LOGTAG, "DRAG_STARTED");
+				Log.d(LOGTAG, "DRAG_STARTED (" + event.getX() + "," + event.getY() + ")");
+				mRenderer.startDrag(event.getX(), event.getY());
 				break;
 				
 			case DragEvent.ACTION_DRAG_ENTERED:
 				//Log.d(LOGTAG, "DRAG_ENTERED");
 				break;
 				
+			case DragEvent.ACTION_DRAG_EXITED:
+				//Log.d(LOGTAG, "DRAG_EXITED");
+				break;
+				
 			case DragEvent.ACTION_DRAG_LOCATION:
-				//Log.d(LOGTAG, "DRAG_LOC");
-				// here pass location
+				//Log.d(LOGTAG, "DRAG_LOC (" + event.getX() + "," + event.getY() + ")");
+				mRenderer.inDrag(event.getX(), event.getY());
+				break;
+			
+			case DragEvent.ACTION_DRAG_ENDED:
+				mRenderer.endDrag();
+				break;
 			}
 			return true;
 		}

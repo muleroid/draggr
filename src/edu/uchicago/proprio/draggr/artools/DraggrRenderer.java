@@ -35,8 +35,6 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	
 	private DraggrFolderBase mFolder;
 	
-	private int mProgram;
-	
 	private final float[] mMVPMatrix = new float[16];
 	private final float[] mProjectionMatrix = new float[16];
 	private final float[] mViewMatrix = new float[16];
@@ -51,8 +49,21 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		mTextures = textures;
 	}
 	
-	public boolean isTouched(float touchX, float touchY) {
-		return mFolder.isTouched(screenToWorld(touchX, touchY));
+	// pass world coordinates to mFolder
+	public void onTouch(float touchX, float touchY) {
+		mFolder.onTouch(screenToWorld(touchX, touchY));
+	}
+	
+	public void startDrag(float touchX, float touchY) {
+		mFolder.startDrag(screenToWorld(touchX, touchY));
+	}
+	
+	public void inDrag(float touchX, float touchY) {
+		mFolder.inDrag(screenToWorld(touchX, touchY));
+	}
+	
+	public void endDrag() {
+		mFolder.releaseFile();
 	}
 	
 	@Override
@@ -65,8 +76,8 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		// TODO Auto-generated method stub
 		GLES20.glViewport(0, 0, width, height);
 		float ratio = (float) width / height;
-		//Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
-		Matrix.orthoM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, -1, 1);
+		Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+		//Matrix.orthoM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, -1, 1);
 		vuforiaAppSession.onSurfaceChanged(width, height);
 	}
 
@@ -101,12 +112,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		}
 		
 		mFolder.setFileTexture(mTextures.firstElement());
-		
-		// oh yeah should probably change this otherwise lol
-		mProgram = GLTools.createProgramFromShaders(mFolder.vertexShader(),
-				mFolder.fragmentShader());
-		checkGlError("glLinkProgram");
-		
+
 		// set up view matrix
 		Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 		
@@ -122,12 +128,15 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
 		//GLES20.glEnable(GLES20.GL_BLEND);
 		//GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-		//if(state.getNumTrackableResults() > 0)
-			//mFolder.draw(mProgram);
-		//Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
-		Matrix.multiplyMM(mMVPMatrix, 0, vuforiaAppSession.getProjectionMatrix().getData(), 
-				0, mViewMatrix, 0);
-		mFolder.draw(mProgram, mMVPMatrix);
+		Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+		if(state.getNumTrackableResults() > 0)
+			mFolder.onScreen();
+		else
+			mFolder.offScreen();
+			//mFolder.draw(mMVPMatrix);
+		//Matrix.multiplyMM(mMVPMatrix, 0, vuforiaAppSession.getProjectionMatrix().getData(), 
+		//		0, mViewMatrix, 0);
+		mFolder.draw(mMVPMatrix);
 		mRenderer.end();
 	}
 	
@@ -161,9 +170,9 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		float worldX = -1 * outPoint[0] / outPoint[3];
 		float worldY = outPoint[1] / outPoint[3];
 		
-		Log.d(LOGTAG, "Touch at: " + worldX + ", " + worldY);
 		return new PointF(worldX, worldY);
 	}
+	
     public static void checkGlError(String glOperation) {
         int error;
         while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
