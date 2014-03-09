@@ -28,6 +28,7 @@ class Connector {
 	}
 
 	Connector(Socket socket) throws IOException {
+		super();
 		this.socket = socket;
 		in = new DataInputStream(socket.getInputStream());
 		out = new DataOutputStream(socket.getOutputStream());

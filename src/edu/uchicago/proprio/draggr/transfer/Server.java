@@ -126,6 +126,7 @@ public class Server extends Thread {
 		return new File(previews.getAbsolutePath() + "/" + filename);
 	}
 	
+	@Override
 	public void run() {
 		if (motd == null || root == null) {
 			log(FATAL, "You must set motd and root before starting draggrd");
@@ -195,7 +196,8 @@ public class Server extends Thread {
 			} else {
 				while ((cmd = br.readLine()) != null) {
 					if (cmd.startsWith("LIST_FILES")) {
-						for (String f : localDevice.listFiles(""))
+						localDevice.updateFiles("");
+						for (String f : localDevice.listFiles())
 							System.out.println(f);
 					} else if (cmd.startsWith("TRANSFER")) {
 						String[] cmds = cmd.split(" ");

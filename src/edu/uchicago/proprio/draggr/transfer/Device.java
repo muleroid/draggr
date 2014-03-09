@@ -11,6 +11,7 @@ import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.io.File;
 import java.io.IOException;
 
@@ -27,6 +28,7 @@ public class Device {
 	}
 	
 	public Device (String name, int port) {
+		super();
 		this.name = name;
 		this.port = port;
 		thumbnails = new HashMap<String,File>();
@@ -64,9 +66,9 @@ public class Device {
 					/* Scan through the 256 closest addresses for a match */
 					byte[] addr = a.getAddress();
 					/* TODO: TEMPORARY */
-					addr[0] = 10;
-					addr[1] = (byte) 150;
-					addr[2] = 109;
+					addr[0] = (byte) 192;
+					addr[1] = (byte) 168;
+					addr[2] = (byte) 1;
 					/* END TEMPORARY */
 					for (int i = 0; i < 256; i++) {
 						addr[3] = (byte) i;
@@ -92,19 +94,20 @@ public class Device {
 		return conn.recvString();
 	}
 	
-	public String[] listFiles(String filter) throws IOException {
+	public void updateFiles(String filter) throws IOException {
 		conn.sendCommand(LIST_FILES);
 		conn.sendString(filter);
 		String[] files = conn.recvString().split("\n");
+		thumbnails.clear();
 		for (String filename : files) {
 			File f = File.createTempFile(name + "_", ".thumb");
 			conn.recvFile(f);
-			File old = thumbnails.put(filename, f);
-			if (old != null) {
-				old.delete();
-			}
+			thumbnails.put(filename, f);
 		}
-		return files;
+	}
+	
+	public Set<String> listFiles() {
+		return thumbnails.keySet();
 	}
 	
 	public void transfer(String filename, Device otherDevice)
