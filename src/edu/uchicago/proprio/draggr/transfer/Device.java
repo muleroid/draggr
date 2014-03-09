@@ -49,7 +49,7 @@ public class Device {
 	}
 	
 	/* Returns true if successful, false otherwise. */
-	public boolean tryConnect() {
+	boolean tryConnect() {
 		/* Search all interfaces for a site-local IPv4 address */
 		Enumeration<NetworkInterface> e;
 		try {
@@ -89,12 +89,12 @@ public class Device {
 		return false;
 	}
 	
-	public String motd() throws IOException {
+	String motd() throws IOException {
 		conn.sendCommand(MOTD);
 		return conn.recvString();
 	}
 	
-	public void updateFiles(String filter) throws IOException {
+	void updateFiles(String filter) throws IOException {
 		conn.sendCommand(LIST_FILES);
 		conn.sendString(filter);
 		String[] files = conn.recvString().split("\n");
@@ -110,7 +110,7 @@ public class Device {
 		return thumbnails.keySet();
 	}
 	
-	public void transfer(String filename, Device otherDevice)
+	void transfer(String filename, Device otherDevice)
 			throws IOException {
 		conn.sendCommand(TRANSFER);
 		conn.sendString(otherDevice.getName());
@@ -118,7 +118,7 @@ public class Device {
 		conn.sendString(filename);
 	}
 	
-	public void upload(String filename, File f, File thumb, File preview)
+	void upload(String filename, File f, File thumb, File preview)
 			throws IOException {
 		conn.sendCommand(UPLOAD);
 		conn.sendString(filename);

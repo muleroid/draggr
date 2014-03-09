@@ -17,7 +17,7 @@ public class PassiveHandler extends Thread {
 		this.parent = parent;
 	}
 	
-	public void close() throws IOException {
+	void close() throws IOException {
 		conn.close();
 	}
 	

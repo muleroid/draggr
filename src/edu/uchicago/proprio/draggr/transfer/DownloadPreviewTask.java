@@ -30,7 +30,9 @@ public class DownloadPreviewTask extends AsyncTask<Void, Void, File> {
 
 	@Override
 	protected void onPostExecute(File f) {
-		Bitmap bm = BitmapFactory.decodeFile(f.getAbsolutePath());
-		view.setImageBitmap(bm);
+		if (f != null) {
+			Bitmap bm = BitmapFactory.decodeFile(f.getAbsolutePath());
+			view.setImageBitmap(bm);
+		}
 	}
 }
