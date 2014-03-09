@@ -3,6 +3,7 @@ package edu.uchicago.proprio.draggr.artools;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
@@ -56,6 +57,23 @@ public class DraggrGLView extends GLSurfaceView {
 					break;
 				}
 				return false;
+			}
+		});
+		
+		setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				Log.d(LOGTAG, "onClick");
+				mRenderer.onTouch(lastX, lastY);
+				String result = mRenderer.onClick();
+				if(result == null)
+					Log.d(LOGTAG, "empty");
+				else {
+					Context mContext = getContext();
+					Intent intent = new Intent(mContext, DraggrPreview.class);
+					intent.putExtra("filename", result);
+					mContext.startActivity(intent);
+				}
+					
 			}
 		});
 		

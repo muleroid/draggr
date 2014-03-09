@@ -21,6 +21,9 @@ import android.util.Log;
 public class DraggrFile {
 	private static final String LOGTAG = "DraggrFile";
 	
+	// metadata relating to the file
+	private String mFilename = "default";
+	
 	private FloatBuffer vertexBuffer;
 	private FloatBuffer texBuffer;
 	
@@ -37,7 +40,7 @@ public class DraggrFile {
 	private int mTexCoordHandle;
 	private int mMVPMatrixHandle;
 	
-	//private bool onScreen;
+	public boolean onScreen = false;
 	
 	private final String vertexShaderCode = 
 		"uniform mat4 uMVPMatrix;" +
@@ -97,7 +100,7 @@ public class DraggrFile {
 	
 	float color[] = { 0.5019608f, 0.5019608f, 0.5019608f, 1.0f };
 	
-	public DraggrFile(float x, float y) {
+	public DraggrFile() {
 		ByteBuffer bb = ByteBuffer.allocateDirect(folderCoords.length * 4);
 		bb.order(ByteOrder.nativeOrder());
 		
@@ -222,5 +225,13 @@ public class DraggrFile {
 	
 	public void translate(float dx, float dy) {
 		Matrix.translateM(mTranslationMatrix, 0, -1 * dx, dy, 0);
+	}
+	
+	public void setFilename(String fn) {
+		mFilename = fn;
+	}
+
+	public String getFilename() {
+		return mFilename;
 	}
 }

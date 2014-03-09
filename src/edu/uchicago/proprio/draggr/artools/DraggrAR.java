@@ -52,6 +52,7 @@ public class DraggrAR extends Activity implements DraggrARControl {
 		setContentView(R.layout.activity_draggr_ar);
 		Log.d(LOGTAG, "onCreate");
 		super.onCreate(savedInstanceState);
+		getActionBar().hide();
 		
 		vuforiaAppSession = new DraggrARSession(this);
 		startLoadingAnimation();
