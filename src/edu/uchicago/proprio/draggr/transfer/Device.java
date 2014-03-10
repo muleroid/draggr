@@ -66,7 +66,7 @@ public class Device {
 	
 	public synchronized boolean blockUntilConnected() {
 		try {
-			while (!connecting)
+			while (connecting)
 				this.wait();
 			return isConnected();
 		} catch (InterruptedException e) {
