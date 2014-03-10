@@ -54,7 +54,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	
 	boolean mIsActive = false;
 	
-	private DraggrFolderBase mFolder;
+	//private DraggrFolderBase mFolder;
 	private DraggrFolderBase mDraggedFolder = null;
 	private HashSet<DraggrFolderBase> onScreenFolders = new HashSet<DraggrFolderBase>();
 	private HashMap<String, DraggrFolderBase> mFolders = new HashMap<String, DraggrFolderBase>();
@@ -64,10 +64,11 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	private final float[] mDragViewMatrix = new float[16];
 	
 	public DraggrRenderer(DraggrAR activity,
-			DraggrARSession session) {
+			DraggrARSession session, Vector<Texture> textures) {
 		mActivity = activity;
 		vuforiaAppSession = session;
-		setFolders();
+		mTextures = textures;
+		//setFolders();
 	}
 	
 	public void setTextures(Vector<Texture> textures) {
@@ -156,11 +157,11 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	
 	// shamelessly ripped from Vuforia sample app
 	private void initRendering() {
-		Device test = new Device("arch_nathan");
+		//Device test = new Device("arch_nathan");
 		/*if(!test.tryConnect())
 			Log.e(LOGTAG, "failed to connect to arch_nathan");*/
-		mFolder = new DraggrFolderBase("womp", test, this);
-		mFolder.populateFiles();
+		//mFolder = new DraggrFolderBase("womp", test, this);
+		//mFolder.populateFiles();
 		
 		mRenderer = Renderer.getInstance();
 		
@@ -181,7 +182,8 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 					GLES20.GL_UNSIGNED_BYTE, t.mData);
 		}
 		
-		mFolder.setFileTexture(mTextures.firstElement());
+		setFolders();
+		//mFolder.setFileTexture(mTextures.firstElement());
 
 		// set up view matrix
 		Matrix.setLookAtM(mDragViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
@@ -204,14 +206,14 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx ++)
 		{
 			// TODO: figure out a way to remove folders that aren't on screen
-			onScreenFolders.add(mFolder);
+			//onScreenFolders.add(mFolder);
 			TrackableResult result = state.getTrackableResult(tIdx);
 			Trackable trackable = result.getTrackable();
 			// uncomment for multiple folders
-			/*DraggrFolderBase cur = mFolders.get(trackable.getName());
+			DraggrFolderBase cur = mFolders.get(trackable.getName());
 			if(cur == null)
 				continue;
-			onScreenFolders.add(cur);*/
+			onScreenFolders.add(cur);
 			Matrix44F modelViewMatrix_Vuforia = Tool
 	                .convertPose2GLMatrix(result.getPose());
 	        float[] modelViewMatrix = modelViewMatrix_Vuforia.getData();
@@ -221,7 +223,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	        // with the pose, as well as the image target's size, so the files
 	        // can be scaled accordingly
             ImageTarget t = (ImageTarget) trackable;
-            mFolder.draw(modelViewMatrix, vuforiaAppSession.getProjectionMatrix().getData(), t);
+            cur.draw(modelViewMatrix, vuforiaAppSession.getProjectionMatrix().getData(), t);
 		}
 		
 		if(mDraggedFolder != null)
@@ -245,6 +247,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 				cur = new Device(entry.name);
 				new ConnectDeviceTask(cur).execute();
 				newFolder = new DraggrFolderBase(entry.trackable, cur, this);
+				newFolder.setFileTexture(mTextures.firstElement());
 				new UpdateFilesTask(cur, "", newFolder).execute();
 				mFolders.put(entry.trackable, newFolder);
 				Log.d(LOGTAG, entry.name + ": " + entry.trackable);

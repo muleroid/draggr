@@ -46,6 +46,7 @@ public class DraggrFolderBase {
 			for(int j = 0; j < numRows; j++) {
 				//Log.d(LOGTAG, "File at (" + relocate.x +"," + relocate.y + ")");
 				mFiles[i][j] = new DraggrFile();
+				mFiles[i][j].onScreen = true;
 			}
 	}
 	
@@ -184,6 +185,8 @@ public class DraggrFolderBase {
 			mFiles[i][j].setFilename(file);
 			// create a new texture from the file thumbnail here?
 			File thumbnail = mDevice.thumbnail(file);
+			if(thumbnail == null)
+				continue;
 			Texture texture = Texture.loadTextureFromFile(thumbnail);
 			mRenderer.loadTextureToFile(texture, mFiles[i][j]);
 			// can set the thumbnail here using setTexture // isn't that done by loadTextureToFile? -Nathan

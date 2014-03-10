@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <device_list>
 	<device>
+	    <name>arch_nathan</name>
+	    <trackable>nature</trackable>
+	</device>
+	<device>
 	    <name>test</name>
 	    <trackable>chips</trackable>
 	</device>

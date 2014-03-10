@@ -248,8 +248,8 @@ public class DraggrAR extends Activity implements DraggrARControl {
 	private void initApplicationAR() {
 		mGLView = new DraggrGLView(this);
 		
-		mRenderer = new DraggrRenderer(this, vuforiaAppSession);
-		mRenderer.setTextures(mTextures);
+		mRenderer = new DraggrRenderer(this, vuforiaAppSession, mTextures);
+		//mRenderer.setTextures(mTextures);
 		mGLView.setRenderer(mRenderer);
 		// cheap hack
 		mGLView.passInRenderer(mRenderer);

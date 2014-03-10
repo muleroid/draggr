@@ -15,6 +15,8 @@ import java.util.Set;
 import java.io.File;
 import java.io.IOException;
 
+import android.util.Log;
+
 
 public class Device {
 	private Connector conn;
@@ -70,6 +72,8 @@ public class Device {
 		try {
 			e = NetworkInterface.getNetworkInterfaces();
 		} catch (SocketException x) {
+			Log.e(name, "Socket exception");
+			Log.e(name, x.getMessage());
 			done = true;
 		}
 		
@@ -84,9 +88,9 @@ search:
 					/* Scan through the 256 closest addresses for a match */
 					byte[] addr = a.getAddress();
 					/* TODO: TEMPORARY */
-					addr[0] = (byte) 192;
-					addr[1] = (byte) 168;
-					addr[2] = (byte) 1;
+					addr[0] = (byte) 10;
+					addr[1] = (byte) 150;
+					addr[2] = (byte) 118;
 					/* END TEMPORARY */
 					for (int i = 0; i < 256; i++) {
 						addr[3] = (byte) i;
@@ -95,6 +99,7 @@ search:
 									InetAddress.getByAddress(addr), this.port);
 							// TODO pick a good timeout
 							if (conn.connect(aa, 20, this.name)) {
+								Log.d(name, "Connection successful at " + aa.toString());
 								success = true;
 								break search;
 							}

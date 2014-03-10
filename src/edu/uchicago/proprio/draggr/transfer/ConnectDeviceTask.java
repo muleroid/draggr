@@ -1,6 +1,7 @@
 package edu.uchicago.proprio.draggr.transfer;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 public class ConnectDeviceTask extends AsyncTask<Void, Void, Void> {
 
@@ -10,7 +11,12 @@ public class ConnectDeviceTask extends AsyncTask<Void, Void, Void> {
 	}
 	@Override
 	protected Void doInBackground(Void... params) {
-		device.tryConnect();
+		Log.d(device.getName(), "Trying to connect");
+		if(device.tryConnect()) {
+			Log.d(device.getName(), "Connected successfully");
+		} else {
+			Log.e(device.getName(), "Unable to connect");
+		}
 		return null;
 	}
 
