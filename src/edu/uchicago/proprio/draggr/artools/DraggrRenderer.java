@@ -26,7 +26,9 @@ import com.qualcomm.vuforia.Vuforia;
 import edu.uchicago.proprio.draggr.shapes.DraggrFile;
 import edu.uchicago.proprio.draggr.shapes.DraggrFolderBase;
 import edu.uchicago.proprio.draggr.shapes.Texture;
+import edu.uchicago.proprio.draggr.transfer.ConnectDeviceTask;
 import edu.uchicago.proprio.draggr.transfer.Device;
+import edu.uchicago.proprio.draggr.transfer.UpdateFilesTask;
 import edu.uchicago.proprio.draggr.xml.DraggrXmlParser;
 import edu.uchicago.proprio.draggr.xml.DraggrXmlParser.DeviceEntry;
 
@@ -240,6 +242,11 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 			entries = deviceParser.parse(mActivity.getAssets().open("device_mapping.xml"));
 			// might want to put this logic in an async task...
 			for(DeviceEntry entry : entries) {
+				/*cur = new Device(entry.name);
+				new ConnectDeviceTask(cur).execute();
+				new UpdateFilesTask(cur, "").execute();
+				newFolder = new DraggrFolderBase(entry.trackable, cur, this);
+				mFolders.put(entry.trackable, newFolder);*/
 				Log.d(LOGTAG, entry.name + ": " + entry.trackable);
 			}
 		} catch (Exception e) {
@@ -252,7 +259,6 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		// get the file info (this requires device be connected)
 		// get the thumbnails?
 		// create a DraggrFolderBase, passing it the name of trackable and the device
-		//mFolders.put(trackableName, newFolder);
 	}
 	
     public static void checkGlError(String glOperation) {
