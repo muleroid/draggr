@@ -15,6 +15,7 @@ import java.nio.ByteOrder;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.util.Log;
 
 
@@ -37,7 +38,7 @@ public class Texture
     		Log.e(LOGTAG, "Failed to get texture " + file.getName() + " from file");
             return null;
     	}
-    		
+    	Log.d(LOGTAG, file.getAbsolutePath());
     	int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
         bitMap.getPixels(data, 0, bitMap.getWidth(), 0, 0,
             bitMap.getWidth(), bitMap.getHeight());
@@ -83,6 +84,8 @@ public class Texture
         for (int p = 0; p < numPixels; ++p)
         {
             int colour = data[p];
+            //Log.d(LOGTAG, "Color is " + Color.red(colour) + "," + Color.green(colour) + 
+            //		"," + Color.blue(colour));
             dataBytes[p * 4] = (byte) (colour >>> 16); // R
             dataBytes[p * 4 + 1] = (byte) (colour >>> 8); // G
             dataBytes[p * 4 + 2] = (byte) colour; // B

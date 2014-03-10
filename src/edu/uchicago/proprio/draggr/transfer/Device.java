@@ -110,6 +110,7 @@ search:
 					/* END TEMPORARY */
 					for (int i = 0; i < 256; i++) {
 						addr[3] = (byte) i;
+						//Log.d(name, "Attempt to connect to " + i);
 						try {
 							InetSocketAddress aa = new InetSocketAddress(
 									InetAddress.getByAddress(addr), this.port);
@@ -130,6 +131,7 @@ search:
 	try {
 		InetSocketAddress aa = new InetSocketAddress(
 				InetAddress.getByAddress(inetAddress), this.port);
+		Log.d(name, "Preset: " + inetAddress.toString());
 		// TODO pick a good timeout
 		if (conn.connect(aa, 20, this.name)) {
 			success = true;

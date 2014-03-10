@@ -180,9 +180,13 @@ public class DraggrFile {
 		mTexCoordHandle = GLES20.glGetAttribLocation(mProgram, "vTexPosition");
 
 		GLES20.glEnableVertexAttribArray(mTexCoordHandle);
+		checkGlError("glEnableVertexAttribArray");
 		GLES20.glVertexAttribPointer(mTexCoordHandle, 2, GLES20.GL_FLOAT, false, 0, texBuffer);
+		checkGlError("glVertexAttribPointer");
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+		checkGlError("glActiveTexture");
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture.mTextureID[0]);
+		checkGlError("glBindTexture");
 		GLES20.glUniform1i(mTexUniformHandle, 0);
 		
 		mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");

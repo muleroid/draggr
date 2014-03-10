@@ -183,7 +183,6 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		}
 		
 		setFolders();
-		//mFolder.setFileTexture(mTextures.firstElement());
 
 		// set up view matrix
 		Matrix.setLookAtM(mDragViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
@@ -275,16 +274,22 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
     public void loadTextureToFile(Texture t, DraggrFile f) {
     	if (t != null) {
 	    	Texture textureToLoad = t;
+	    	if(!textureToLoad.mSuccess)
+	    		Log.e(LOGTAG, "Texture failed to load");
 	    	DraggrFile targetFile = f;
 			GLES20.glGenTextures(1, textureToLoad.mTextureID, 0);
+			checkGlError("glGenTextures");
 			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureToLoad.mTextureID[0]);
+			checkGlError("glBindTexture");
 			GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, 
 					GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+			checkGlError("glTexParameterf");
 			GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, 
 					GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 			GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
 					textureToLoad.mWidth, textureToLoad.mHeight, 0, GLES20.GL_RGBA,
 					GLES20.GL_UNSIGNED_BYTE, textureToLoad.mData);
+			checkGlError("glTexImage2D");
 			targetFile.setTexture(textureToLoad);
 			/* old code: new LoadTextureTask(t, f).execute(); */
 		}

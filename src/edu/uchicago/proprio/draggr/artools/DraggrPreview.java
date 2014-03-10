@@ -3,6 +3,8 @@ package edu.uchicago.proprio.draggr.artools;
 import edu.uchicago.proprio.draggr.R;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -24,6 +26,9 @@ public class DraggrPreview extends Activity {
 	    TextView tView = (TextView) findViewById(R.id.preview_fn);
 	    mImageView = (ImageView) findViewById(R.id.preview_img);
 	    tView.setText(extras.getString("filename"));
+	    
+	    Bitmap preview = BitmapFactory.decodeFile(extras.getString("filename"));
+	    mImageView.setImageBitmap(preview);
 	}
 
 }

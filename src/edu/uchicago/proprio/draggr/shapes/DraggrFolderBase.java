@@ -46,7 +46,7 @@ public class DraggrFolderBase {
 			for(int j = 0; j < numRows; j++) {
 				//Log.d(LOGTAG, "File at (" + relocate.x +"," + relocate.y + ")");
 				mFiles[i][j] = new DraggrFile();
-				mFiles[i][j].onScreen = true;
+				//mFiles[i][j].onScreen = true;
 			}
 	}
 	
@@ -92,7 +92,8 @@ public class DraggrFolderBase {
 	public String onClick() {
 		String result = null;
 		if(draggedFile != null) {
-			result = draggedFile.getFilename();
+			//result = draggedFile.getFilename();
+			result = mDevice.thumbnail(draggedFile.getFilename()).getAbsolutePath();
 			draggedFile = null;
 		}
 		return result;
