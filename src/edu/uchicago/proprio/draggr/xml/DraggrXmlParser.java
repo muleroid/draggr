@@ -2,6 +2,7 @@ package edu.uchicago.proprio.draggr.xml;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,10 +17,12 @@ public class DraggrXmlParser {
 	public static class DeviceEntry {
 		public final String name;
 		public final String trackable;
+		public final byte[] ipaddr;
 		
-		private DeviceEntry(String name, String trackable) {
+		private DeviceEntry(String name, String trackable, byte[] ipaddr) {
 			this.name = name;
 			this.trackable = trackable;
+			this.ipaddr = ipaddr;
 		}
 	}
 	
@@ -57,6 +60,7 @@ public class DraggrXmlParser {
 		parser.require(XmlPullParser.START_TAG, ns, "device");
 		String name = null;
 		String trackable = null;
+		byte[] ipaddr;
 		while(parser.next() != XmlPullParser.END_TAG) {
 			if(parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -66,12 +70,14 @@ public class DraggrXmlParser {
 				name = readName(parser);
 			} else if (womp.equals("trackable")) {
 				trackable = readTrackable(parser);
+			} else if (womp.equals("ip_address")) {
+				ipaddr = readIP(parser);
 			} else {
 				skip(parser);
 			}
 		}
 		
-		return new DeviceEntry(name, trackable);
+		return new DeviceEntry(name, trackable, ipaddr);
 	}
 	
 	private String readName(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -86,6 +92,13 @@ public class DraggrXmlParser {
 		String trackable = readText(parser);
 		parser.require(XmlPullParser.END_TAG, ns, "trackable");
 		return trackable;
+	}
+	
+	private byte[] readIP(XmlPullParser parser) throws XmlPullParserException, IOException {
+		parser.require(XmlPullParser.START_TAG, ns, "ip_address");
+		String ipString = readText(parser);
+		parser.require(XmlPullParser.END_TAG, ns, "ip_address");
+		return InetAddress.getByName(ipString).getAddress();
 	}
 	
 	private String readText(XmlPullParser parser) throws XmlPullParserException, IOException {
