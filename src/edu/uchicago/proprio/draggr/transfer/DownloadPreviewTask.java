@@ -21,6 +21,8 @@ public class DownloadPreviewTask extends AsyncTask<Void, Void, File> {
 
 	@Override
 	protected File doInBackground(Void... arg0) {
+		if (!device.blockUntilConnected())
+			return null;
 		try {
 			return device.preview(filename);
 		} catch (IOException e) {
