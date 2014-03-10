@@ -22,6 +22,7 @@ public class Device {
 	private int port;
 	private Map<String,File> thumbnails;
 	private Map<String,File> previews;
+	private boolean connecting; /* whether we are in the process of connecting */
 	
 	public Device (String name) {
 		this(name, Server.defaultPort);
@@ -34,6 +35,7 @@ public class Device {
 		thumbnails = new HashMap<String,File>();
 		previews = new HashMap<String,File>();
 		conn = new Connector();
+		connecting = true;
 	}
 	
 	public boolean isConnected() {
@@ -48,15 +50,31 @@ public class Device {
 		return port;
 	}
 	
+	public synchronized boolean blockUntilConnected() {
+		try {
+			while (!connecting)
+				this.wait();
+			return isConnected();
+		} catch (InterruptedException e) {
+			return false;
+		}
+	}
+	
 	/* Returns true if successful, false otherwise. */
-	boolean tryConnect() {
+	synchronized boolean tryConnect() {
+		connecting = true;
+		boolean success = false;
+		boolean done = false;
 		/* Search all interfaces for a site-local IPv4 address */
-		Enumeration<NetworkInterface> e;
+		Enumeration<NetworkInterface> e = null;
 		try {
 			e = NetworkInterface.getNetworkInterfaces();
 		} catch (SocketException x) {
-			return false;
+			done = true;
 		}
+		
+if (!done) {
+search:
 		while (e.hasMoreElements()) {
 			Enumeration<InetAddress> ee = e.nextElement().getInetAddresses();
 			while (ee.hasMoreElements()) {
@@ -77,7 +95,8 @@ public class Device {
 									InetAddress.getByAddress(addr), this.port);
 							// TODO pick a good timeout
 							if (conn.connect(aa, 20, this.name)) {
-								return true;
+								success = true;
+								break search;
 							}
 						} catch (UnknownHostException x) {
 						}
@@ -85,8 +104,11 @@ public class Device {
 				}
 			}
 		}
+}
 		
-		return false;
+		connecting = false;
+		this.notifyAll();
+		return success;
 	}
 	
 	String motd() throws IOException {

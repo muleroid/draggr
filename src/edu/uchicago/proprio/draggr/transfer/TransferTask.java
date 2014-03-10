@@ -18,6 +18,8 @@ public class TransferTask extends AsyncTask<Void, Void, Void> {
 	
 	@Override
 	protected Void doInBackground(Void... params) {
+		if (!device.blockUntilConnected())
+			return null;
 		try {
 			device.transfer(filename, otherDevice);
 		} catch (IOException e) {}

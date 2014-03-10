@@ -15,6 +15,8 @@ public class UpdateFilesTask extends AsyncTask<Void, Void, Void> {
 
 	@Override
 	protected Void doInBackground(Void... params) {
+		if (!device.blockUntilConnected())
+			return null;
 		try {
 			device.updateFiles(filter);
 		} catch (IOException e) {
