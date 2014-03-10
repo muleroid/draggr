@@ -15,8 +15,6 @@ import java.util.Set;
 import java.io.File;
 import java.io.IOException;
 
-import android.util.Log;
-
 
 public class Device {
 	private Connector conn;
@@ -88,8 +86,6 @@ if (inetAddress == null) {
 		try {
 			e = NetworkInterface.getNetworkInterfaces();
 		} catch (SocketException x) {
-			Log.e(name, "Socket exception");
-			Log.e(name, x.getMessage());
 			done = true;
 		}
 		
@@ -115,7 +111,6 @@ search:
 									InetAddress.getByAddress(addr), this.port);
 							// TODO pick a good timeout
 							if (conn.connect(aa, 20, this.name)) {
-								Log.d(name, "Connection successful at " + aa.toString());
 								success = true;
 								break search;
 							}

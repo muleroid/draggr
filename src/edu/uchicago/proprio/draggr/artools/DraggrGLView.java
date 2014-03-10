@@ -1,5 +1,6 @@
 package edu.uchicago.proprio.draggr.artools;
 
+import edu.uchicago.proprio.draggr.transfer.LaunchPreviewTask;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Context;
@@ -64,14 +65,11 @@ public class DraggrGLView extends GLSurfaceView {
 			public void onClick(View v) {
 				Log.d(LOGTAG, "onClick");
 				mRenderer.onTouch(lastX, lastY);
-				String result = mRenderer.onClick();
-				if(result == null)
+				LaunchPreviewTask launcher = mRenderer.onClick();
+				if(launcher == null)
 					Log.d(LOGTAG, "empty");
 				else {
-					Context mContext = getContext();
-					Intent intent = new Intent(mContext, DraggrPreview.class);
-					intent.putExtra("filename", result);
-					mContext.startActivity(intent);
+					launcher.execute(getContext());
 				}
 					
 			}
