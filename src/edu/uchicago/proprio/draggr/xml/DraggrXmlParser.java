@@ -60,7 +60,7 @@ public class DraggrXmlParser {
 		parser.require(XmlPullParser.START_TAG, ns, "device");
 		String name = null;
 		String trackable = null;
-		byte[] ipaddr;
+		byte[] ipaddr = null;
 		while(parser.next() != XmlPullParser.END_TAG) {
 			if(parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
