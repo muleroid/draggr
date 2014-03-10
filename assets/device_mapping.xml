@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<device_list>
+	<device>
+	    <name>test</name>
+	    <trackable>chips</trackable>
+	</device>
+	<device>
+	    <name>womp</name>
+	    <trackable>stones</trackable>
+	</device>
+</device_list>

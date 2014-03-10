@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="11"
         android:targetSdkVersion="18" />
     <!-- The application requires the use of the OpenGL ES 2.0 API -->
     <uses-feature
@@ -27,26 +27,18 @@
         Add this permission to check which network access properties (e.g.
         active type: 3G/WiFi).
      -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <application
-        android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
-        <activity
-            android:name="edu.uchicago.proprio.draggr.MainActivity"
-            android:label="@string/app_name" >
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /><application android:allowBackup="true" android:icon="@drawable/ic_launcher" android:label="@string/app_name" android:theme="@style/AppTheme">
+        <activity android:name="edu.uchicago.proprio.draggr.MainActivity" android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="edu.uchicago.proprio.draggr.artools.DraggrAR"
-            android:label="@string/title_activity_draggr_ar" >
+        <activity android:name="edu.uchicago.proprio.draggr.artools.DraggrAR" android:label="@string/title_activity_draggr_ar" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         </activity>
+        <activity android:name=".artools.DraggrPreview" android:label="@string/title_activity_draggr_preview" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"></activity>
+        <activity android:name=".transfer.DraggrPassive" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"></activity>
     </application>
 
 </manifest>

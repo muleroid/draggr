@@ -5,5 +5,12 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_draggr_ar">DraggrAR</string>
-
+    <string name="title_activity_draggr_preview"></string>
+    <string-array name="trackable_list">
+        <item>chips</item>
+        <item>flower</item>
+        <item>nature</item>
+        <item>stones</item>
+        <item>tarmac</item>
+    </string-array>
 </resources>

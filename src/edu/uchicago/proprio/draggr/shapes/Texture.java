@@ -6,6 +6,7 @@
 package edu.uchicago.proprio.draggr.shapes;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -30,7 +31,20 @@ public class Texture
     public int[] mTextureID = new int[1];
     public boolean mSuccess = false;
     
-    
+    public static Texture loadTextureFromFile(File file) {
+    	Bitmap bitMap = BitmapFactory.decodeFile(file.getAbsolutePath());
+    	if(bitMap == null) {
+    		Log.e(LOGTAG, "Failed to get texture " + file.getName() + " from file");
+            return null;
+    	}
+    		
+    	int[] data = new int[bitMap.getWidth() * bitMap.getHeight()];
+        bitMap.getPixels(data, 0, bitMap.getWidth(), 0, 0,
+            bitMap.getWidth(), bitMap.getHeight());
+            
+        return loadTextureFromIntBuffer(data, bitMap.getWidth(),
+            bitMap.getHeight());
+    }
     /* Factory function to load a texture from the APK. */
     public static Texture loadTextureFromApk(String fileName,
         AssetManager assets)

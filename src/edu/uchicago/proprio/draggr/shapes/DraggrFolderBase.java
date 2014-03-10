@@ -1,5 +1,9 @@
 package edu.uchicago.proprio.draggr.shapes;
 
+import java.io.File;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 
 import com.qualcomm.vuforia.ImageTarget;
@@ -8,16 +12,18 @@ import android.graphics.PointF;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import edu.uchicago.proprio.draggr.transfer.Device;
+import edu.uchicago.proprio.draggr.transfer.TransferTask;
+
 // class which manages display of various files
 public class DraggrFolderBase {
 	private static final String LOGTAG = "DraggrFolderBase";
 	
 	// this string is used for equality checking
-	// it is equal to the TBD
+	// it is equal to the trackable name
 	private final String mId;
-	
-	private DraggrFile mFile;
-	private DraggrFile mFile2;
+	private final Device mDevice;
+
 	private DraggrFile[][] mFiles;
 	private DraggrFile draggedFile = null;
 	
@@ -27,28 +33,22 @@ public class DraggrFolderBase {
 	private static float lastDragX;
 	private static float lastDragY;
 	
-	private boolean onScreen = false;
-	
-	public DraggrFolderBase(String id) {
+	public DraggrFolderBase(String id, Device device) {
 		// cols and rows are backwards because i can't figure out how to change orientation
 		mId = id;
+		mDevice = device;
 		mFiles = new DraggrFile[numCols][numRows];
 		for(int i = 0; i < numCols; i++)
 			for(int j = 0; j < numRows; j++) {
-				PointF relocate = calcLocation(i, j);
 				//Log.d(LOGTAG, "File at (" + relocate.x +"," + relocate.y + ")");
-				mFiles[i][j] = new DraggrFile(relocate.x, relocate.y);
+				mFiles[i][j] = new DraggrFile();
 			}
-		//mFile = new DraggrFile(0, -0.3f);
-		//mFile2 = new DraggrFile(0, 0.3f);
 	}
 	
 	public void setFileTexture(Texture fTexture) {
 		for(int i = 0; i < numCols; i++)
 			for(int j = 0; j < numRows; j++)
 				mFiles[i][j].setTexture(fTexture);
-		//mFile.setTexture(fTexture);
-		//mFile2.setTexture(fTexture);
 	}
 	
 	public void draw(float[] modelViewMatrix, float[] projectionMatrix, ImageTarget t) {
@@ -57,63 +57,52 @@ public class DraggrFolderBase {
 		float tY = t.getSize().getData()[1];
 		for(int i = 0; i < numCols; i++)
 			for(int j = 0; j < numRows; j++) {
+				DraggrFile temp = mFiles[i][j];
+				if(!temp.onScreen)
+					continue;
 				float[] modelViewClone = modelViewMatrix.clone();
 				PointF whereToPut = placeInSpace(i, j, tX, tY);
-				//Log.d(LOGTAG, "whereToPut: " + whereToPut.x + "," + whereToPut.y);
+
 				Matrix.translateM(modelViewClone, 0, whereToPut.x, whereToPut.y, 3.0f);
-				Matrix.scaleM(modelViewClone, 0, tX * 0.5f, tY * 0.5f, 1.0f);
+				Matrix.scaleM(modelViewClone, 0, tX * 1.0f, tY * 1.0f, 1.0f);
 				float[] modelViewProjection = new float[16];
 				Matrix.multiplyMM(modelViewProjection, 0, projectionMatrix, 0, modelViewClone, 0);
-				if(draggedFile != mFiles[i][j]) {
-					mFiles[i][j].mModelViewMatrix.setData(modelViewClone);
-					mFiles[i][j].mProjectionMatrix.setData(projectionMatrix.clone());
-					mFiles[i][j].draw(modelViewProjection);
+				if(draggedFile != temp) {
+					temp.mModelViewMatrix.setData(modelViewClone);
+					temp.mProjectionMatrix.setData(projectionMatrix.clone());
+					temp.draw(modelViewProjection);
 				}
 			}
-		/*if(mFile2 != draggedFile)
-			mFile2.draw(mvpMatrix.clone());
-		if(mFile != draggedFile)
-			mFile.draw(mvpMatrix.clone());*/
 	}
 	
 	// overload that is only used when dragging
 	public void draw(float[] mProjectionMatrix, float[] mViewMatrix) {
 		float[] modelViewProjection = new float[16];
+		if(draggedFile == null)
+			return;
 		Matrix.multiplyMM(modelViewProjection, 0, mProjectionMatrix, 0, mViewMatrix, 0);
-		if(draggedFile != null)
-			draggedFile.draw(modelViewProjection);
+		draggedFile.draw(modelViewProjection);
 	}
 	
-	public void onScreen() {
-		onScreen = true;
-	}
-	
-	public void offScreen() {
-		onScreen = false;
-	}
-	
-	public boolean isOnScreen() {
-		return onScreen;
+	public String onClick() {
+		String result = null;
+		if(draggedFile != null) {
+			result = draggedFile.getFilename();
+			draggedFile = null;
+		}
+		return result;
 	}
 	
 	// functions that handle drag functionality
 	public void onTouch(PointF screenP) {
 		for(int i = 0; i < numCols; i++)
 			for(int j = 0; j < numRows; j++) {
-				//mFiles[i][j].onTouch(screenP.x, screenP.y);
-				if(mFiles[i][j].onTouch(screenP.x, screenP.y)) {
-					draggedFile = mFiles[i][j];
+				DraggrFile temp = mFiles[i][j];
+				if(temp.onScreen && temp.onTouch(screenP.x, screenP.y)) {
+					draggedFile = temp;
 					return;
 				}
 			}
-		/*if(mFile.isTouched(screenP.x, screenP.y)) {
-			Log.d(LOGTAG, "mFile touched");
-			draggedFile = mFile;
-		}
-		if(mFile2.isTouched(screenP.x, screenP.y)) {
-			Log.d(LOGTAG, "mFile2 touched");
-			draggedFile = mFile2;
-		}*/
 	}
 	
 	public boolean startDrag(PointF screenP) {
@@ -144,28 +133,66 @@ public class DraggrFolderBase {
 			draggedFile.resetPosition();
 			draggedFile = null;
 		}
-		//mFile.resetPosition();
 	}
 	
-	// given an index into the 2D array of files, calculate where in space to translate that file
-	private PointF calcLocation(int i, int j) {
-		float dy = (float) (j - 1) * 0.3f;
-		float dx = (float) (i - 1) * 0.3f;
-		
-		return new PointF(dx, dy);
+	public String getId() {
+		return mId;
+	}
+	
+	public Device getDevice() {
+		return mDevice;
+	}
+	
+	public void transfer(DraggrFolderBase dest) {
+		if(draggedFile == null) {
+			Log.e(LOGTAG, "no file selected");
+			return;
+		}
+		new TransferTask(mDevice, draggedFile.getFilename(), dest.getDevice()).execute();
 	}
 	
 	// do a thing
 	private PointF placeInSpace(int i, int j, float x, float y) {
-		float dy = (float) (j - 1) * y * 0.3f;
-		float dx = (float) (i - 1) * x * 0.3f;
+		float dy = (float) (j - 1) * y * 1.0f;
+		float dx = (float) (i - 1) * x * 1.0f;
 		
 		return new PointF(dx, dy);
 	}
 	
 	// given retrieved file information, generate files
-	private void populateFiles() {
-		
+	// this can be called anytime we receive a new update from the device
+	// TOUSE: uncomment commented block, comment out the HashSet garbage
+	public void populateFiles() {
+		// for when we actually connect
+		/*if(!mDevice.isConnected()) {
+			Log.e(LOGTAG, mDevice.getName() + " not connected, could not retrieve files");
+			return;
+		}
+		Iterator<String> itr = mDevice.listFiles().iterator();*/
+		HashSet<String> files = new HashSet<String>();
+		files.add("game_of_thrones");
+		files.add("hunger_games");
+		Iterator<String> itr = files.iterator();
+		int f = 0;
+		int i = 0;
+		int j = 0;
+		while(itr.hasNext() && f < numRows * numCols) {
+			String file = itr.next();
+			mFiles[i][j].setFilename(file);
+			// create a new texture from the file thumbnail here?
+			/*File thumbnail = mDevice.thumbnail(file);
+			Texture texture = Texture.loadTextureFromFile(thumbnail);
+			if(texture != null)
+				mFiles[i][j].setTexture(texture);*/
+			// can set the thumbnail here using setTexture
+			mFiles[i][j].onScreen = true;
+			j++;
+			f++;
+			if(j >= numRows) {
+				i++;
+				j = 0;
+			}
+		}
 	}
 	
 	// override Equals and HashCode functions
