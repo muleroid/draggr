@@ -28,6 +28,7 @@ import edu.uchicago.proprio.draggr.shapes.DraggrFolderBase;
 import edu.uchicago.proprio.draggr.shapes.Texture;
 import edu.uchicago.proprio.draggr.transfer.ConnectDeviceTask;
 import edu.uchicago.proprio.draggr.transfer.Device;
+import edu.uchicago.proprio.draggr.transfer.LaunchPreviewTask;
 import edu.uchicago.proprio.draggr.transfer.UpdateFilesTask;
 import edu.uchicago.proprio.draggr.xml.DraggrXmlParser;
 import edu.uchicago.proprio.draggr.xml.DraggrXmlParser.DeviceEntry;
@@ -86,16 +87,16 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		}
 	}
 	
-	public String onClick() {
-		String result = null;
+	public LaunchPreviewTask onClick() {
+		LaunchPreviewTask results = null;
 		if(onScreenFolders.isEmpty())
-			return result;
+			return results;
 		Iterator<DraggrFolderBase> itr = onScreenFolders.iterator();
 		while(itr.hasNext()) {
 			DraggrFolderBase temp = (DraggrFolderBase) itr.next();
-			result = temp.onClick();
+			results = temp.onClick();
 		}
-		return result;
+		return results;
 	}
 	
 	public void startDrag(float touchX, float touchY) {

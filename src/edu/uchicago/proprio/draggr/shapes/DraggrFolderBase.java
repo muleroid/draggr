@@ -14,6 +14,7 @@ import android.util.Log;
 
 import edu.uchicago.proprio.draggr.artools.DraggrRenderer;
 import edu.uchicago.proprio.draggr.transfer.Device;
+import edu.uchicago.proprio.draggr.transfer.LaunchPreviewTask;
 import edu.uchicago.proprio.draggr.transfer.TransferTask;
 
 // class which manages display of various files
@@ -46,7 +47,7 @@ public class DraggrFolderBase {
 			for(int j = 0; j < numRows; j++) {
 				//Log.d(LOGTAG, "File at (" + relocate.x +"," + relocate.y + ")");
 				mFiles[i][j] = new DraggrFile();
-				//mFiles[i][j].onScreen = true;
+				mFiles[i][j].onScreen = true;
 			}
 	}
 	
@@ -89,14 +90,13 @@ public class DraggrFolderBase {
 		draggedFile.draw(modelViewProjection);
 	}
 	
-	public String onClick() {
-		String result = null;
+	public LaunchPreviewTask onClick() {
+		LaunchPreviewTask results = null;
 		if(draggedFile != null) {
-			//result = draggedFile.getFilename();
-			result = mDevice.thumbnail(draggedFile.getFilename()).getAbsolutePath();
+			results = new LaunchPreviewTask(mDevice, draggedFile.getFilename());
 			draggedFile = null;
 		}
-		return result;
+		return results;
 	}
 	
 	// functions that handle drag functionality
