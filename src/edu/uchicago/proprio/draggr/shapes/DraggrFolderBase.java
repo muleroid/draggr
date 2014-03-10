@@ -167,16 +167,15 @@ public class DraggrFolderBase {
 	// this can be called anytime we receive a new update from the device
 	// TOUSE: uncomment commented block, comment out the HashSet garbage
 	public void populateFiles() {
-		// for when we actually connect
-		/*if(!mDevice.isConnected()) {
+		if(!mDevice.isConnected()) {
 			Log.e(LOGTAG, mDevice.getName() + " not connected, could not retrieve files");
 			return;
 		}
-		Iterator<String> itr = mDevice.listFiles().iterator();*/
-		HashSet<String> files = new HashSet<String>();
+		Iterator<String> itr = mDevice.listFiles().iterator();
+		/*HashSet<String> files = new HashSet<String>();
 		files.add("game_of_thrones");
 		files.add("hunger_games");
-		Iterator<String> itr = files.iterator();
+		Iterator<String> itr = files.iterator();*/ /* old placeholder code I think - Nathan */
 		int f = 0;
 		int i = 0;
 		int j = 0;
@@ -184,10 +183,10 @@ public class DraggrFolderBase {
 			String file = itr.next();
 			mFiles[i][j].setFilename(file);
 			// create a new texture from the file thumbnail here?
-			/*File thumbnail = mDevice.thumbnail(file);
+			File thumbnail = mDevice.thumbnail(file);
 			Texture texture = Texture.loadTextureFromFile(thumbnail);
-			mRenderer.loadTextureToFile(texture, mFiles[i][j]);*/
-			// can set the thumbnail here using setTexture
+			mRenderer.loadTextureToFile(texture, mFiles[i][j]);
+			// can set the thumbnail here using setTexture // isn't that done by loadTextureToFile? -Nathan
 			mFiles[i][j].onScreen = true;
 			j++;
 			f++;
