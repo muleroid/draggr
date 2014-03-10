@@ -2,15 +2,19 @@ package edu.uchicago.proprio.draggr.transfer;
 
 import java.io.IOException;
 
+import edu.uchicago.proprio.draggr.shapes.DraggrFolderBase;
+
 import android.os.AsyncTask;
 
 public class UpdateFilesTask extends AsyncTask<Void, Void, Void> {
 	private Device device;
 	private String filter;
+	private DraggrFolderBase parent;
 	
-	public UpdateFilesTask(Device d, String f) {
+	public UpdateFilesTask(Device d, String f, DraggrFolderBase p) {
 		device = d;
 		filter = f;
+		parent = p;
 	}
 
 	@Override
@@ -19,6 +23,7 @@ public class UpdateFilesTask extends AsyncTask<Void, Void, Void> {
 			return null;
 		try {
 			device.updateFiles(filter);
+			parent.populateFiles();
 		} catch (IOException e) {
 		}
 		return null;
