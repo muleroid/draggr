@@ -20,7 +20,7 @@ class Connector {
 		/* Ensure there are less than 256 of these.
 		 * They are serialized as a single byte.
 		 */
-		NAME, MOTD, TRANSFER, LIST_FILES, UPLOAD, PREVIEW, CLOSE;
+		NAME, MOTD, TRANSFER, TRANSFER_IP, LIST_FILES, UPLOAD, PREVIEW, CLOSE;
 	}
 	
 	Connector() {
@@ -78,6 +78,16 @@ class Connector {
 	
 	int recvInt() throws IOException {
 		return in.readInt();
+	}
+	
+	void sendIP(byte[] b) throws IOException {
+		out.write(b);
+	}
+	
+	byte[] recvIP() throws IOException {
+		byte[] b = new byte[4];
+		in.readFully(b);
+		return b;
 	}
 
 	void sendString(String s) throws IOException {
