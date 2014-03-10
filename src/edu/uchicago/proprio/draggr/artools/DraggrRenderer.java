@@ -242,11 +242,11 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 			entries = deviceParser.parse(mActivity.getAssets().open("device_mapping.xml"));
 			// might want to put this logic in an async task...
 			for(DeviceEntry entry : entries) {
-				/*cur = new Device(entry.name);
+				cur = new Device(entry.name);
 				new ConnectDeviceTask(cur).execute();
-				new UpdateFilesTask(cur, "").execute();
 				newFolder = new DraggrFolderBase(entry.trackable, cur, this);
-				mFolders.put(entry.trackable, newFolder);*/
+				new UpdateFilesTask(cur, "", newFolder).execute();
+				mFolders.put(entry.trackable, newFolder);
 				Log.d(LOGTAG, entry.name + ": " + entry.trackable);
 			}
 		} catch (Exception e) {
@@ -270,8 +270,20 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
     }
     
     public void loadTextureToFile(Texture t, DraggrFile f) {
-    	if(t != null) {
-			new LoadTextureTask(t, f).execute();
+    	if (t != null) {
+	    	Texture textureToLoad = t;
+	    	DraggrFile targetFile = f;
+			GLES20.glGenTextures(1, textureToLoad.mTextureID, 0);
+			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureToLoad.mTextureID[0]);
+			GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, 
+					GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+			GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, 
+					GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+			GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
+					textureToLoad.mWidth, textureToLoad.mHeight, 0, GLES20.GL_RGBA,
+					GLES20.GL_UNSIGNED_BYTE, textureToLoad.mData);
+			targetFile.setTexture(textureToLoad);
+			/* old code: new LoadTextureTask(t, f).execute(); */
 		}
     }
     
