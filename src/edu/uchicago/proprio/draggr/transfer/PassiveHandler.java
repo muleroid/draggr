@@ -26,7 +26,9 @@ public class PassiveHandler extends Thread {
 		boolean done = false;
 		while (!done) {
 			try {
-				switch (conn.recvCommand()) {
+				Connector.Command cmd = conn.recvCommand();
+				log(DEBUG, "got command " + cmd.toString());
+				switch (cmd) {
 				case NAME:
 					conn.sendString(parent.getName());
 					break;
@@ -37,7 +39,10 @@ public class PassiveHandler extends Thread {
 					handleListFiles();
 					break;
 				case TRANSFER:
-					handleTransfer();
+					handleTransfer(false);
+					break;
+				case TRANSFER_IP:
+					handleTransfer(true);
 					break;
 				case UPLOAD:
 					handleUpload();
@@ -53,11 +58,11 @@ public class PassiveHandler extends Thread {
 					throw new IOException("Unknown command for draggr protocol");
 				}
 			} catch (IOException e) {
+				log(INFO, "Closing connection: " + e.getMessage());
 				done = true;
 			}
 		}
 		
-		log(INFO, "Closing connection " + conn);
 		try { this.close(); }
 		catch (IOException e) {}
 	}
@@ -88,16 +93,17 @@ public class PassiveHandler extends Thread {
 		}
 	}
 	
-	private void handleTransfer() throws IOException {
+	private void handleTransfer(boolean hasIP) throws IOException {
 		String deviceName = conn.recvString();
 		int port = conn.recvInt();
+		byte[] ipaddr = (hasIP) ? conn.recvIP() : null;
 		String filename = conn.recvString();
 		
 		/* From here on, we catch I/O errors, because we do not want
 		 * connection problems with the new device to cause the
 		 * preexisting connection to be aborted.
 		 */
-		Device otherDevice = new Device(deviceName, port);
+		Device otherDevice = new Device(deviceName, port, ipaddr);
 		if (otherDevice.tryConnect()) {
 			try {
 				otherDevice.upload(filename,

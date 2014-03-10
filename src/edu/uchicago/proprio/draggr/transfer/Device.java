@@ -25,12 +25,17 @@ public class Device {
 	private Map<String,File> thumbnails;
 	private Map<String,File> previews;
 	private boolean connecting; /* whether we are in the process of connecting */
+	private byte[] inetAddress; /* added in case we need to hard code the IPs */
 	
 	public Device (String name) {
-		this(name, Server.defaultPort);
+		this(name, Server.defaultPort, null);
 	}
 	
-	public Device (String name, int port) {
+	public Device (String name, byte[] inetAddress) {
+		this(name, Server.defaultPort, inetAddress);
+	}
+	
+	public Device (String name, int port, byte[] inetAddress) {
 		super();
 		this.name = name;
 		this.port = port;
@@ -38,6 +43,7 @@ public class Device {
 		previews = new HashMap<String,File>();
 		conn = new Connector();
 		connecting = true;
+		this.inetAddress = inetAddress;
 	}
 	
 	public boolean isConnected() {
@@ -52,9 +58,17 @@ public class Device {
 		return port;
 	}
 	
+    boolean hasInetAddress() {
+    	return inetAddress != null;
+    }
+    
+    byte[] getInetAddress() {
+    	return inetAddress;
+    }
+	
 	public synchronized boolean blockUntilConnected() {
 		try {
-			while (!connecting)
+			while (connecting)
 				this.wait();
 			return isConnected();
 		} catch (InterruptedException e) {
@@ -67,6 +81,8 @@ public class Device {
 		connecting = true;
 		boolean success = false;
 		boolean done = false;
+		
+if (inetAddress == null) {
 		/* Search all interfaces for a site-local IPv4 address */
 		Enumeration<NetworkInterface> e = null;
 		try {
@@ -110,7 +126,17 @@ search:
 			}
 		}
 }
-		
+} else /* inetAddress != null */ {
+	try {
+		InetSocketAddress aa = new InetSocketAddress(
+				InetAddress.getByAddress(inetAddress), this.port);
+		// TODO pick a good timeout
+		if (conn.connect(aa, 20, this.name)) {
+			success = true;
+		}
+	} catch (UnknownHostException e) {
+	}
+}
 		connecting = false;
 		this.notifyAll();
 		return success;
@@ -139,8 +165,10 @@ search:
 	
 	void transfer(String filename, Device otherDevice)
 			throws IOException {
+		Connector.Command cmd = (otherDevice.hasInetAddress()) ? TRANSFER : TRANSFER_IP;
 		conn.sendCommand(TRANSFER);
 		conn.sendString(otherDevice.getName());
+		if (cmd == TRANSFER_IP) conn.sendIP(otherDevice.getInetAddress());
 		conn.sendInt(otherDevice.getPort());
 		conn.sendString(filename);
 	}

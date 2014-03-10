@@ -210,6 +210,8 @@ public class Server extends Thread {
 						String[] cmds = cmd.split(" ");
 						File f = localDevice.thumbnail(cmds[1]);
 						System.out.println("found! " + f.length());
+					} else if (cmd.startsWith("CLOSE")) {
+						break;
 					} else {
 						System.out.println("Sorry, could you repeat that?");
 					}
