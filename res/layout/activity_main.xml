@@ -8,9 +8,30 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
-    <TextView
+    <Spinner
+        android:id="@+id/trackable_selector"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="159dp" />
+
+    <Button
+        android:id="@+id/start_ar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="78dp"
+        android:text="Start AR" />
+
+    <Button
+        android:id="@+id/start_passive"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/trackable_selector"
+        android:layout_below="@+id/trackable_selector"
+        android:layout_marginTop="34dp"
+        android:text="Start Passive Handler" />
 
 </RelativeLayout>

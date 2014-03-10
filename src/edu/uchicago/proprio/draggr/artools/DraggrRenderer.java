@@ -1,13 +1,17 @@
 package edu.uchicago.proprio.draggr.artools;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
+import org.xmlpull.v1.XmlPullParserException;
 
 import com.qualcomm.vuforia.ImageTarget;
 import com.qualcomm.vuforia.Matrix44F;
@@ -21,6 +25,8 @@ import com.qualcomm.vuforia.Vuforia;
 import edu.uchicago.proprio.draggr.shapes.DraggrFolderBase;
 import edu.uchicago.proprio.draggr.shapes.Texture;
 import edu.uchicago.proprio.draggr.transfer.Device;
+import edu.uchicago.proprio.draggr.xml.DraggrXmlParser;
+import edu.uchicago.proprio.draggr.xml.DraggrXmlParser.DeviceEntry;
 
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -57,6 +63,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 			DraggrARSession session) {
 		mActivity = activity;
 		vuforiaAppSession = session;
+		setFolders();
 	}
 	
 	public void setTextures(Vector<Texture> textures) {
@@ -106,7 +113,6 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 			mDraggedFolder.inDrag(GLTools.screenToWorld(touchX, touchY, 
 					vuforiaAppSession.getScreenWidth(), vuforiaAppSession.getScreenHeight(),
 					mDragProjMatrix, mDragViewMatrix));
-		//mFolder.inDrag(screenToWorld(touchX, touchY));
 	}
 	
 	public void endDrag() {
@@ -131,7 +137,6 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 
 	@Override
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
-		// TODO Auto-generated method stub
 		GLES20.glViewport(0, 0, width, height);
 		float ratio = (float) width / height;
 		Matrix.frustumM(mDragProjMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
@@ -184,7 +189,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	private void renderFrame() {
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 		State state = mRenderer.begin();
-		// make a shallow copy
+
 		mRenderer.drawVideoBackground();
 		
 		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
@@ -226,14 +231,26 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	private void setFolders() {
 		Device cur;
 		DraggrFolderBase newFolder;
+		DraggrXmlParser deviceParser = new DraggrXmlParser();
+		List<DeviceEntry> entries = null;
 		// read in XML? or get information somehow
-		
+		try {
+			entries = deviceParser.parse(mActivity.getAssets().open("device_mapping.xml"));
+			// might want to put this logic in an async task...
+			for(DeviceEntry entry : entries) {
+				Log.d(LOGTAG, entry.name + ": " + entry.trackable);
+			}
+		} catch (Exception e) {
+			Log.e(LOGTAG, "Error parsing device_mapping.xml");
+			Log.e(LOGTAG, e.getMessage());
+		}
 		// loop over all information, each iteration:
 		// create a device w/ given name (and port? if necessary)
 		// try to connect the device
 		// get the file info (this requires device be connected)
 		// get the thumbnails?
 		// create a DraggrFolderBase, passing it the name of trackable and the device
+		//mFolders.put(trackableName, newFolder);
 	}
 	
     public static void checkGlError(String glOperation) {

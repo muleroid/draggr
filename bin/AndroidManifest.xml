@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="11"
         android:targetSdkVersion="18" />
     <!-- The application requires the use of the OpenGL ES 2.0 API -->
     <uses-feature
@@ -35,9 +35,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="edu.uchicago.proprio.draggr.artools.DraggrAR" android:label="@string/title_activity_draggr_ar">
+        <activity android:name="edu.uchicago.proprio.draggr.artools.DraggrAR" android:label="@string/title_activity_draggr_ar" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         </activity>
-        <activity android:name=".artools.DraggrPreview" android:label="@string/title_activity_draggr_preview"></activity>
+        <activity android:name=".artools.DraggrPreview" android:label="@string/title_activity_draggr_preview" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"></activity>
+        <activity android:name=".transfer.DraggrPassive" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"></activity>
     </application>
 
 </manifest>

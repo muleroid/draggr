@@ -20,8 +20,6 @@ public class DraggrPreview extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		setContentView(R.layout.activity_draggr_preview);
 	    super.onCreate(savedInstanceState);
-	    ActionBar actionBar = getActionBar();
-	    actionBar.hide();
 	    Bundle extras = getIntent().getExtras();
 	    TextView tView = (TextView) findViewById(R.id.preview_fn);
 	    mImageView = (ImageView) findViewById(R.id.preview_img);

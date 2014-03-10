@@ -11,8 +11,6 @@ import com.qualcomm.vuforia.Tracker;
 import com.qualcomm.vuforia.TrackerManager;
 
 import edu.uchicago.proprio.draggr.R;
-import edu.uchicago.proprio.draggr.R.layout;
-import edu.uchicago.proprio.draggr.R.menu;
 import edu.uchicago.proprio.draggr.shapes.Texture;
 import android.os.Bundle;
 import android.app.Activity;
@@ -20,11 +18,9 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.util.Log;
-import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
-import android.view.View.OnDragListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.RelativeLayout;
 
@@ -52,7 +48,6 @@ public class DraggrAR extends Activity implements DraggrARControl {
 		setContentView(R.layout.activity_draggr_ar);
 		Log.d(LOGTAG, "onCreate");
 		super.onCreate(savedInstanceState);
-		getActionBar().hide();
 		
 		vuforiaAppSession = new DraggrARSession(this);
 		startLoadingAnimation();

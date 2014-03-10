@@ -202,7 +202,6 @@ public class DraggrFile {
 	}
 	
 	public void resetPosition() {
-		//Matrix.translateM(mTranslationMatrix, 0, mOrigPositionMatrix, 0, 0, 0, 0);
 		Matrix.setIdentityM(mTranslationMatrix, 0);
 	}
 		

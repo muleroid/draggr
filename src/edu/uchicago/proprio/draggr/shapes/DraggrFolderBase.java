@@ -42,7 +42,6 @@ public class DraggrFolderBase {
 			for(int j = 0; j < numRows; j++) {
 				//Log.d(LOGTAG, "File at (" + relocate.x +"," + relocate.y + ")");
 				mFiles[i][j] = new DraggrFile();
-				mFiles[i][j].setFilename(i + "," + j);
 			}
 	}
 	
@@ -63,7 +62,7 @@ public class DraggrFolderBase {
 					continue;
 				float[] modelViewClone = modelViewMatrix.clone();
 				PointF whereToPut = placeInSpace(i, j, tX, tY);
-				//Log.d(LOGTAG, "whereToPut: " + whereToPut.x + "," + whereToPut.y);
+
 				Matrix.translateM(modelViewClone, 0, whereToPut.x, whereToPut.y, 3.0f);
 				Matrix.scaleM(modelViewClone, 0, tX * 1.0f, tY * 1.0f, 1.0f);
 				float[] modelViewProjection = new float[16];
@@ -79,9 +78,10 @@ public class DraggrFolderBase {
 	// overload that is only used when dragging
 	public void draw(float[] mProjectionMatrix, float[] mViewMatrix) {
 		float[] modelViewProjection = new float[16];
+		if(draggedFile == null)
+			return;
 		Matrix.multiplyMM(modelViewProjection, 0, mProjectionMatrix, 0, mViewMatrix, 0);
-		if(draggedFile != null)
-			draggedFile.draw(modelViewProjection);
+		draggedFile.draw(modelViewProjection);
 	}
 	
 	public String onClick() {

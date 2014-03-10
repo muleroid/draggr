@@ -2,6 +2,10 @@
 <device_list>
 	<device>
 	    <name>test</name>
-	    <trackable>track</trackable>
+	    <trackable>chips</trackable>
+	</device>
+	<device>
+	    <name>womp</name>
+	    <trackable>stones</trackable>
 	</device>
 </device_list>
