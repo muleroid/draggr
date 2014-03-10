@@ -244,8 +244,8 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 			for(DeviceEntry entry : entries) {
 				/*cur = new Device(entry.name);
 				new ConnectDeviceTask(cur).execute();
-				new UpdateFilesTask(cur, "").execute();
 				newFolder = new DraggrFolderBase(entry.trackable, cur, this);
+				new UpdateFilesTask(cur, "", newFolder).execute();
 				mFolders.put(entry.trackable, newFolder);*/
 				Log.d(LOGTAG, entry.name + ": " + entry.trackable);
 			}
