@@ -1,5 +1,6 @@
 package edu.uchicago.proprio.draggr.artools;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import com.qualcomm.vuforia.Trackable;
 import com.qualcomm.vuforia.TrackableResult;
 import com.qualcomm.vuforia.Vuforia;
 
+import edu.uchicago.proprio.draggr.shapes.DraggrFile;
 import edu.uchicago.proprio.draggr.shapes.DraggrFolderBase;
 import edu.uchicago.proprio.draggr.shapes.Texture;
 import edu.uchicago.proprio.draggr.transfer.Device;
@@ -155,7 +157,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		Device test = new Device("arch_nathan");
 		/*if(!test.tryConnect())
 			Log.e(LOGTAG, "failed to connect to arch_nathan");*/
-		mFolder = new DraggrFolderBase("womp", test);
+		mFolder = new DraggrFolderBase("womp", test, this);
 		mFolder.populateFiles();
 		
 		mRenderer = Renderer.getInstance();
@@ -259,5 +261,37 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
             Log.e(LOGTAG, glOperation + ": glError " + error);
             throw new RuntimeException(glOperation + ": glError " + error);
         }
+    }
+    
+    public void loadTextureToFile(Texture t, DraggrFile f) {
+    	if(t != null) {
+			new LoadTextureTask(t, f).execute();
+		}
+    }
+    
+    // this will load the texture in a background thread..., once the result
+    // is achieved, set the corresponding DraggrFile's texture to it, using setTexture
+    public class LoadTextureTask extends AsyncTask<Void, Void, Void> {
+    	private Texture textureToLoad;
+    	private DraggrFile targetFile;
+    	
+    	public LoadTextureTask(Texture t, DraggrFile f) {
+    		textureToLoad = t;
+    		targetFile = f;
+    	}
+    	
+    	protected Void doInBackground(Void... UNUSED) {
+    		GLES20.glGenTextures(1, textureToLoad.mTextureID, 0);
+			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureToLoad.mTextureID[0]);
+			GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, 
+					GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+			GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, 
+					GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+			GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
+					textureToLoad.mWidth, textureToLoad.mHeight, 0, GLES20.GL_RGBA,
+					GLES20.GL_UNSIGNED_BYTE, textureToLoad.mData);
+			targetFile.setTexture(textureToLoad);
+    		return null;
+    	}
     }
 }

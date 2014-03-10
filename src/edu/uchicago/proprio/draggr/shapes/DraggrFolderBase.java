@@ -12,12 +12,15 @@ import android.graphics.PointF;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import edu.uchicago.proprio.draggr.artools.DraggrRenderer;
 import edu.uchicago.proprio.draggr.transfer.Device;
 import edu.uchicago.proprio.draggr.transfer.TransferTask;
 
 // class which manages display of various files
 public class DraggrFolderBase {
 	private static final String LOGTAG = "DraggrFolderBase";
+	
+	private final DraggrRenderer mRenderer;
 	
 	// this string is used for equality checking
 	// it is equal to the trackable name
@@ -33,10 +36,11 @@ public class DraggrFolderBase {
 	private static float lastDragX;
 	private static float lastDragY;
 	
-	public DraggrFolderBase(String id, Device device) {
+	public DraggrFolderBase(String id, Device device, DraggrRenderer renderer) {
 		// cols and rows are backwards because i can't figure out how to change orientation
 		mId = id;
 		mDevice = device;
+		mRenderer = renderer;
 		mFiles = new DraggrFile[numCols][numRows];
 		for(int i = 0; i < numCols; i++)
 			for(int j = 0; j < numRows; j++) {
@@ -182,8 +186,7 @@ public class DraggrFolderBase {
 			// create a new texture from the file thumbnail here?
 			/*File thumbnail = mDevice.thumbnail(file);
 			Texture texture = Texture.loadTextureFromFile(thumbnail);
-			if(texture != null)
-				mFiles[i][j].setTexture(texture);*/
+			mRenderer.loadTextureToFile(texture, mFiles[i][j]);*/
 			// can set the thumbnail here using setTexture
 			mFiles[i][j].onScreen = true;
 			j++;
