@@ -79,7 +79,7 @@ public class Server extends Thread {
 	}
 	
 	File[] listFiles(final String filter) {
-		log(TRACE, "listFiles()");
+		log(TRACE, "listFiles() for file " + root.getAbsolutePath());
 		FileFilter ff = new FileFilter () {
 			public boolean accept(File f) {
 				return f.getName().contains(filter)

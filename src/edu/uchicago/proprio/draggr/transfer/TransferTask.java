@@ -2,8 +2,6 @@ package edu.uchicago.proprio.draggr.transfer;
 
 import java.io.IOException;
 
-import edu.uchicago.proprio.draggr.shapes.DraggrFolderBase;
-
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -12,7 +10,6 @@ public class TransferTask extends AsyncTask<Void, Void, Void> {
 	private Device device;
 	private String filename;
 	private Device otherDevice;
-	private DraggrFolderBase folder;
 	
 	public TransferTask(Device d, String f, Device o) {
 		device = d;

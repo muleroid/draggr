@@ -76,21 +76,28 @@ public class PassiveHandler extends Thread {
 	}
 	
 	private void handleListFiles() throws IOException {
-		log(TRACE, "handleListFiles()");
 		String filter = conn.recvString();
 		File[] files = parent.listFiles(filter);
+		log(TRACE, "handleListFiles() got " + files.length + "files");
 		
 		String r = "";
 		for (File f : files)
 		{
 			String fname = f.getName();
-			r += fname.substring(0, fname.lastIndexOf('.')) + "\n";
+			int idx = fname.lastIndexOf('.');
+			if (idx >= 0)
+				fname = fname.substring(0, idx);
+			r += fname + "\n";
 		}
 		conn.sendString(r);
 		log(TRACE, "sent file list:\n" + r);
 		
 		for (File f : files) {
-			File t = parent.getThumbnail(f.getName());
+			String fname = f.getName();
+			int idx = fname.lastIndexOf('.');
+			if (idx >= 0)
+				fname = fname.substring(0, idx);
+			File t = parent.getThumbnail(fname);
 			log(TRACE, "sending thumbnail: " + f.getName() + " " + t.length());
 			conn.sendFile(t);
 		}
