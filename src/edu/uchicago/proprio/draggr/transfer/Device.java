@@ -15,8 +15,6 @@ import java.util.Set;
 import java.io.File;
 import java.io.IOException;
 
-import android.util.Log;
-
 
 public class Device {
 	private Connector conn;
@@ -33,6 +31,10 @@ public class Device {
 	
 	public Device (String name, byte[] inetAddress) {
 		this(name, Server.defaultPort, inetAddress);
+	}
+	
+	public Device (String name, int port) {
+		this(name, port, null);
 	}
 	
 	public Device (String name, int port, byte[] inetAddress) {
@@ -84,7 +86,6 @@ public class Device {
 		
 if (inetAddress == null) {
 		/* Search all interfaces for a site-local IPv4 address */
-		Log.d(name, "SEARCH EVERYTHING");
 		Enumeration<NetworkInterface> e = null;
 		try {
 			e = NetworkInterface.getNetworkInterfaces();
@@ -92,56 +93,50 @@ if (inetAddress == null) {
 			done = true;
 		}
 		
-		if (!done) {
-			search:
-				while (e.hasMoreElements()) {
-					Enumeration<InetAddress> ee = e.nextElement().getInetAddresses();
-					while (ee.hasMoreElements()) {
-						InetAddress a = ee.nextElement();
-						if (a instanceof Inet4Address && a.isSiteLocalAddress()) {
+if (!done) {
+search:
+		while (e.hasMoreElements()) {
+			Enumeration<InetAddress> ee = e.nextElement().getInetAddresses();
+			while (ee.hasMoreElements()) {
+				InetAddress a = ee.nextElement();
+				if (a instanceof Inet4Address && a.isSiteLocalAddress()) {
 					
-						/* Scan through the 256 closest addresses for a match */
-						byte[] addr = a.getAddress();
-						/* TODO: TEMPORARY */
-						//addr[0] = (byte) 172;
-						//addr[1] = (byte) 16;
-						//addr[2] = (byte) 42;
-						/* END TEMPORARY */
-						for (int i = 0; i < 256; i++) {
-							addr[3] = (byte) i;
-							//Log.d(name, "Attempt to connect to " + i);
-							try {
-								InetSocketAddress aa = new InetSocketAddress(
-										InetAddress.getByAddress(addr), this.port);
-								// TODO pick a good timeout
-								if (conn.connect(aa, 20, this.name)) {
-									success = true;
-									break search;
-								}
-							} catch (UnknownHostException x) {
+					/* Scan through the 256 closest addresses for a match */
+					byte[] addr = a.getAddress();
+					for (int i = 0; i < 256; i++) {
+						addr[3] = (byte) i;
+						//Log.d(name, "Attempt to connect to " + i);
+						try {
+							InetSocketAddress aa = new InetSocketAddress(
+									InetAddress.getByAddress(addr), this.port);
+							// TODO pick a good timeout
+							if (conn.connect(aa, 20, this.name)) {
+								success = true;
+								break search;
 							}
+						} catch (UnknownHostException x) {
 						}
 					}
 				}
 			}
-	}
-	} else /* inetAddress != null */ {
-		try {
-			InetSocketAddress aa = new InetSocketAddress(
-					InetAddress.getByAddress(inetAddress), this.port);
-			Log.d(name, "Preset: " + inetAddress.toString());
-			// TODO pick a good timeout
-			if (conn.connect(aa, 200, this.name)) {
-				success = true;
-			}
-		} catch (UnknownHostException e) {
-			Log.e(name, "Error: " + e.getMessage());
 		}
-	}
-			connecting = false;
-			this.notifyAll();
-			return success;
+}
+} else /* inetAddress != null */ {
+	try {
+		InetSocketAddress aa = new InetSocketAddress(
+				InetAddress.getByAddress(inetAddress), this.port);
+		//Log.d(name, "Preset: " + inetAddress.toString());
+		// TODO pick a good timeout
+		if (conn.connect(aa, 20, this.name)) {
+			success = true;
 		}
+	} catch (UnknownHostException e) {
+	}
+}
+		connecting = false;
+		this.notifyAll();
+		return success;
+	}
 	
 	String motd() throws IOException {
 		conn.sendCommand(MOTD);
