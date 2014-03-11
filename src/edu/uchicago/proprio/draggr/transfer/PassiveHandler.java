@@ -82,7 +82,10 @@ public class PassiveHandler extends Thread {
 		
 		String r = "";
 		for (File f : files)
-			r += f.getName() + "\n";
+		{
+			String fname = f.getName();
+			r += fname.substring(0, fname.lastIndexOf('.')) + "\n";
+		}
 		conn.sendString(r);
 		log(TRACE, "sent file list:\n" + r);
 		

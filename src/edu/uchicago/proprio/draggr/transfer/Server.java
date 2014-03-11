@@ -92,7 +92,7 @@ public class Server extends Thread {
 	
 	File getFile(String filename) {
 		for (File f : root.listFiles()) {
-			if (f.getName().equals(filename))
+			if (f.getName().startsWith(filename))
 				return f;
 		}
 		return null;
@@ -100,7 +100,7 @@ public class Server extends Thread {
 	
 	File getThumbnail(String filename) {
 		for (File f : thumbs.listFiles()) {
-			if (f.getName().equals(filename))
+			if (f.getName().startsWith(filename))
 				return f;
 		}
 		return null;
@@ -108,7 +108,7 @@ public class Server extends Thread {
 	
 	File getPreview(String filename) {
 		for (File f : previews.listFiles()) {
-			if (f.getName().equals(filename))
+			if (f.getName().startsWith(filename))
 				return f;
 		}
 		return null;
@@ -191,10 +191,10 @@ public class Server extends Thread {
 					new InputStreamReader(System.in));
 			String cmd;
 			Device localDevice = new Device(args[0], new byte[] {
-					(byte) 172,
-					(byte) 16,
-					(byte) 42,
-					(byte) 101
+					(byte) 10,
+					(byte) 150,
+					(byte) 105,
+					(byte) 242
 			});
 			if (!localDevice.tryConnect()) {
 				System.out.println("error connecting local device");
