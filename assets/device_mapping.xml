@@ -6,8 +6,8 @@
 	    <ip_address>172.16.42.101</ip_address>
 	</device>
 	<device>
-	    <name>test</name>
-	    <trackable>chips</trackable>
+	    <name>mac_ben</name>
+	    <trackable>flower</trackable>
 	</device>
 	<device>
 	    <name>womp</name>

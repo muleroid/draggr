@@ -2,6 +2,7 @@ package edu.uchicago.proprio.draggr.artools;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -25,6 +26,7 @@ import com.qualcomm.vuforia.Vuforia;
 
 import edu.uchicago.proprio.draggr.shapes.DraggrFile;
 import edu.uchicago.proprio.draggr.shapes.DraggrFolderBase;
+import edu.uchicago.proprio.draggr.shapes.DraggrPair;
 import edu.uchicago.proprio.draggr.shapes.Texture;
 import edu.uchicago.proprio.draggr.transfer.ConnectDeviceTask;
 import edu.uchicago.proprio.draggr.transfer.Device;
@@ -44,6 +46,8 @@ import android.os.AsyncTask;
 
 public class DraggrRenderer implements GLSurfaceView.Renderer{
     private static final String LOGTAG = "DraggrRenderer";
+    
+    private ArrayDeque<DraggrPair> textureQueue = new ArrayDeque<DraggrPair>();
     
     private DraggrARSession vuforiaAppSession;
     private DraggrAR mActivity;
@@ -184,7 +188,6 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 		}
 		
 		setFolders();
-		//mFolder.setFileTexture(mTextures.firstElement());
 
 		// set up view matrix
 		Matrix.setLookAtM(mDragViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
@@ -214,6 +217,12 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 			DraggrFolderBase cur = mFolders.get(trackable.getName());
 			if(cur == null)
 				continue;
+			
+			// if textureQueue is non-empty, update textures as necessary
+			if(!textureQueue.isEmpty()) {
+				DraggrPair p = textureQueue.pop();
+				loadTextureToFile(p.getTexture(), p.getFile());
+			}
 			onScreenFolders.add(cur);
 			Matrix44F modelViewMatrix_Vuforia = Tool
 	                .convertPose2GLMatrix(result.getPose());
@@ -273,19 +282,34 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
         }
     }
     
-    public void loadTextureToFile(Texture t, DraggrFile f) {
+    public void mapTextureToFile(Texture t, DraggrFile f) {
+    	if (t != null) {
+    		if(!t.mSuccess)
+    			Log.e(LOGTAG, "Failed to map texture to " + f.getFilename());
+    		textureQueue.add(new DraggrPair(t, f));
+    	}
+    }
+    
+    private void loadTextureToFile(Texture t, DraggrFile f) {
     	if (t != null) {
 	    	Texture textureToLoad = t;
+    		//Texture textureToLoad = Texture.loadTextureFromApk("file_texture2.jpg", mActivity.getAssets());
+	    	//if(!textureToLoad.mSuccess)
+	    	//	Log.e(LOGTAG, "Texture failed to load");
 	    	DraggrFile targetFile = f;
 			GLES20.glGenTextures(1, textureToLoad.mTextureID, 0);
+			checkGlError("glGenTextures");
 			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureToLoad.mTextureID[0]);
+			checkGlError("glBindTexture");
 			GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, 
 					GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+			checkGlError("glTexParameterf");
 			GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, 
 					GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 			GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
 					textureToLoad.mWidth, textureToLoad.mHeight, 0, GLES20.GL_RGBA,
 					GLES20.GL_UNSIGNED_BYTE, textureToLoad.mData);
+			checkGlError("glTexImage2D");
 			targetFile.setTexture(textureToLoad);
 			/* old code: new LoadTextureTask(t, f).execute(); */
 		}

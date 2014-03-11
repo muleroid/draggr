@@ -1,7 +1,6 @@
 package edu.uchicago.proprio.draggr.shapes;
 
 import java.io.File;
-import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -94,7 +93,12 @@ public class DraggrFolderBase {
 	public LaunchPreviewTask onClick() {
 		LaunchPreviewTask results = null;
 		if(draggedFile != null) {
+<<<<<<< HEAD
+			//result = draggedFile.getFilename();
+			result = mDevice.thumbnail(draggedFile.getFilename()).getAbsolutePath();
+=======
 			results = new LaunchPreviewTask(mDevice, draggedFile.getFilename());
+>>>>>>> 31171056d9d09397efb0ea52a9f623c9852fd00a
 			draggedFile = null;
 		}
 		return results;
@@ -190,7 +194,7 @@ public class DraggrFolderBase {
 			if(thumbnail == null)
 				continue;
 			Texture texture = Texture.loadTextureFromFile(thumbnail);
-			mRenderer.mapTextureToFile(texture, mFiles[i][j]);
+			mRenderer.loadTextureToFile(texture, mFiles[i][j]);
 			// can set the thumbnail here using setTexture // isn't that done by loadTextureToFile? -Nathan
 			mFiles[i][j].onScreen = true;
 			j++;
