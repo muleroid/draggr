@@ -8,6 +8,7 @@ import edu.uchicago.proprio.draggr.artools.DraggrPreview;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.util.Log;
 
 public class LaunchPreviewTask extends AsyncTask<Context, Void, Void> {
 	private String filename;
@@ -20,8 +21,10 @@ public class LaunchPreviewTask extends AsyncTask<Context, Void, Void> {
 
 	@Override
 	protected Void doInBackground(Context... arg0) {
+		Log.d(device.getName(), "Pinging for preview");
 		if (device.blockUntilConnected()) {
 			try {
+				Log.d(device.getName(), "Pinging for preview the revenge of the sith");
 				File f = device.preview(filename);
 				Context mContext = arg0[0];
 				Intent intent = new Intent(mContext, DraggrPreview.class);

@@ -9,10 +9,12 @@ import java.util.List;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.util.Log;
 import android.util.Xml;
 
 public class DraggrXmlParser {
 	private static final String ns = null;
+	private static final String LOGTAG = "DraggrXmlParser";
 	
 	public static class DeviceEntry {
 		public final String name;
@@ -97,6 +99,7 @@ public class DraggrXmlParser {
 	private byte[] readIP(XmlPullParser parser) throws XmlPullParserException, IOException {
 		parser.require(XmlPullParser.START_TAG, ns, "ip_address");
 		String ipString = readText(parser);
+		Log.d(LOGTAG, ipString);
 		parser.require(XmlPullParser.END_TAG, ns, "ip_address");
 		return InetAddress.getByName(ipString).getAddress();
 	}

@@ -48,7 +48,6 @@ public class DraggrFolderBase {
 			for(int j = 0; j < numRows; j++) {
 				//Log.d(LOGTAG, "File at (" + relocate.x +"," + relocate.y + ")");
 				mFiles[i][j] = new DraggrFile();
-				//mFiles[i][j].onScreen = true;
 			}
 	}
 	
@@ -156,12 +155,13 @@ public class DraggrFolderBase {
 			return;
 		}
 		new TransferTask(mDevice, draggedFile.getFilename(), dest.getDevice()).execute();
+		// populate the files
 	}
 	
 	// do a thing
 	private PointF placeInSpace(int i, int j, float x, float y) {
 		float dy = (float) (j - 1) * y * 1.0f;
-		float dx = (float) (i - 1) * x * 1.0f;
+		float dx = (float) (i - 1) * x * 0.5f;
 		
 		return new PointF(dx, dy);
 	}
@@ -175,10 +175,6 @@ public class DraggrFolderBase {
 			return;
 		}
 		Iterator<String> itr = mDevice.listFiles().iterator();
-		/*HashSet<String> files = new HashSet<String>();
-		files.add("game_of_thrones");
-		files.add("hunger_games");
-		Iterator<String> itr = files.iterator();*/ /* old placeholder code I think - Nathan */
 		int f = 0;
 		int i = 0;
 		int j = 0;
