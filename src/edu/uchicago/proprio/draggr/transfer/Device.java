@@ -127,7 +127,7 @@ search:
 				InetAddress.getByAddress(inetAddress), this.port);
 		//Log.d(name, "Preset: " + inetAddress.toString());
 		// TODO pick a good timeout
-		if (conn.connect(aa, 200, this.name)) {
+		if (conn.connect(aa, 1000, this.name)) {
 			success = true;
 		}
 	} catch (UnknownHostException e) {
