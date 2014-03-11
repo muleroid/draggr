@@ -108,6 +108,10 @@ public class PassiveHandler extends Thread {
 		int port = conn.recvInt();
 		byte[] ipaddr = (hasIP) ? conn.recvIP() : null;
 		String filename = conn.recvString();
+		if (ipaddr != null)
+		log(DEBUG, "In handleTransfer: " + filename + "\n" + deviceName + "\nport:" + port + "\nip: "
+				+ipaddr[0]+"."+ipaddr[1]+"."+ipaddr[2]+"."+ipaddr[3]);
+		else log(DEBUG, "In handleTransfer: NO IP ADDR");
 		
 		/* From here on, we catch I/O errors, because we do not want
 		 * connection problems with the new device to cause the
@@ -116,6 +120,7 @@ public class PassiveHandler extends Thread {
 		Device otherDevice = new Device(deviceName, port, ipaddr);
 		if (otherDevice.tryConnect()) {
 			try {
+				log(DEBUG, "connected successfully");
 				otherDevice.upload(filename,
 						parent.getFile(filename),
 						parent.getThumbnail(filename),
@@ -123,7 +128,6 @@ public class PassiveHandler extends Thread {
 				otherDevice.close();
 				return;
 			} catch (IOException e) {
-				
 			}
 		}
 		log(WARN, "Transfer of " + filename + " could not be completed");

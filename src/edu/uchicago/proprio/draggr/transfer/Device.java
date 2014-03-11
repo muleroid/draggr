@@ -161,8 +161,8 @@ search:
 	
 	void transfer(String filename, Device otherDevice)
 			throws IOException {
-		Connector.Command cmd = (otherDevice.hasInetAddress()) ? TRANSFER : TRANSFER_IP;
-		conn.sendCommand(TRANSFER);
+		Connector.Command cmd = (otherDevice.hasInetAddress()) ? TRANSFER_IP : TRANSFER;
+		conn.sendCommand(cmd);
 		conn.sendString(otherDevice.getName());
 		if (cmd == TRANSFER_IP) conn.sendIP(otherDevice.getInetAddress());
 		conn.sendInt(otherDevice.getPort());

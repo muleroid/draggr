@@ -49,8 +49,13 @@ public class Server extends Thread {
 	public void setRoot(String r) {
 		root = new File(r);
 		if (!root.exists())
+		{
 			if (!root.mkdirs())
 				log(ERROR, "Could not create root directory");
+		} else {
+			log(INFO, "Set root with " + root.listFiles().length + " files");
+			log(INFO, listFiles("").length + "without the two directories");
+		}
 		thumbs = new File(r + "/thumbs");
 		if (!thumbs.exists())
 			if (!thumbs.mkdir())
