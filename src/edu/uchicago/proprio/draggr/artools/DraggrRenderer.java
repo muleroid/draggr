@@ -43,6 +43,7 @@ import android.opengl.Matrix;
 import android.util.Log;
 import android.opengl.GLES20;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 
 public class DraggrRenderer implements GLSurfaceView.Renderer{
     private static final String LOGTAG = "DraggrRenderer";
@@ -162,12 +163,6 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	
 	// shamelessly ripped from Vuforia sample app
 	private void initRendering() {
-		//Device test = new Device("arch_nathan");
-		/*if(!test.tryConnect())
-			Log.e(LOGTAG, "failed to connect to arch_nathan");*/
-		//mFolder = new DraggrFolderBase("womp", test, this);
-		//mFolder.populateFiles();
-		
 		mRenderer = Renderer.getInstance();
 		
 		// sets background frame color
@@ -254,13 +249,26 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 			entries = deviceParser.parse(mActivity.getAssets().open("device_mapping.xml"));
 			// might want to put this logic in an async task...
 			for(DeviceEntry entry : entries) {
-				cur = new Device(entry.name);
+				if(entry.ipaddr != null)
+					cur = new Device(entry.name, entry.ipaddr);
+				else
+					cur = new Device(entry.name);
 				new ConnectDeviceTask(cur).execute();
 				newFolder = new DraggrFolderBase(entry.trackable, cur, this);
 				newFolder.setFileTexture(mTextures.firstElement());
 				new UpdateFilesTask(cur, "", newFolder).execute();
 				mFolders.put(entry.trackable, newFolder);
 				Log.d(LOGTAG, entry.name + ": " + entry.trackable);
+				new Thread(new Runnable() {
+					public void run() {
+						while(true) {
+							SystemClock.sleep(5000);
+							for(DraggrFolderBase f : mFolders.values()) {
+								new UpdateFilesTask(f.getDevice(), "", f).execute();
+							}
+						}
+					}
+				}).start();
 			}
 		} catch (Exception e) {
 			Log.e(LOGTAG, "Error parsing device_mapping.xml");
@@ -311,33 +319,6 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 					GLES20.GL_UNSIGNED_BYTE, textureToLoad.mData);
 			checkGlError("glTexImage2D");
 			targetFile.setTexture(textureToLoad);
-			/* old code: new LoadTextureTask(t, f).execute(); */
 		}
-    }
-    
-    // this will load the texture in a background thread..., once the result
-    // is achieved, set the corresponding DraggrFile's texture to it, using setTexture
-    public class LoadTextureTask extends AsyncTask<Void, Void, Void> {
-    	private Texture textureToLoad;
-    	private DraggrFile targetFile;
-    	
-    	public LoadTextureTask(Texture t, DraggrFile f) {
-    		textureToLoad = t;
-    		targetFile = f;
-    	}
-    	
-    	protected Void doInBackground(Void... UNUSED) {
-    		GLES20.glGenTextures(1, textureToLoad.mTextureID, 0);
-			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureToLoad.mTextureID[0]);
-			GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, 
-					GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-			GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, 
-					GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-			GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
-					textureToLoad.mWidth, textureToLoad.mHeight, 0, GLES20.GL_RGBA,
-					GLES20.GL_UNSIGNED_BYTE, textureToLoad.mData);
-			targetFile.setTexture(textureToLoad);
-    		return null;
-    	}
     }
 }
