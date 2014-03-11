@@ -3,6 +3,7 @@ package edu.uchicago.proprio.draggr.shapes;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.ArrayDeque;
 
 import com.qualcomm.vuforia.Matrix44F;
 import com.qualcomm.vuforia.Vec2F;

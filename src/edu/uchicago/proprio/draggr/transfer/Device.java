@@ -100,9 +100,9 @@ search:
 					/* Scan through the 256 closest addresses for a match */
 					byte[] addr = a.getAddress();
 					/* TODO: TEMPORARY */
-					addr[0] = (byte) 10;
-					addr[1] = (byte) 150;
-					addr[2] = (byte) 118;
+					//addr[0] = (byte) 172;
+					//addr[1] = (byte) 16;
+					//addr[2] = (byte) 42;
 					/* END TEMPORARY */
 					for (int i = 0; i < 256; i++) {
 						addr[3] = (byte) i;
@@ -126,7 +126,7 @@ search:
 	try {
 		InetSocketAddress aa = new InetSocketAddress(
 				InetAddress.getByAddress(inetAddress), this.port);
-		Log.d(name, "Preset: " + inetAddress.toString());
+		//Log.d(name, "Preset: " + inetAddress.toString());
 		// TODO pick a good timeout
 		if (conn.connect(aa, 20, this.name)) {
 			success = true;
