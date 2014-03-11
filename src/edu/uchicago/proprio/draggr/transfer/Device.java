@@ -15,6 +15,8 @@ import java.util.Set;
 import java.io.File;
 import java.io.IOException;
 
+import android.util.Log;
+
 
 public class Device {
 	private Connector conn;
@@ -161,11 +163,12 @@ search:
 	
 	void transfer(String filename, Device otherDevice)
 			throws IOException {
-		Connector.Command cmd = (otherDevice.hasInetAddress()) ? TRANSFER : TRANSFER_IP;
-		conn.sendCommand(TRANSFER);
+		Connector.Command cmd = (otherDevice.hasInetAddress()) ? TRANSFER_IP : TRANSFER;
+		Log.d(name, cmd.toString());
+		conn.sendCommand(cmd);
 		conn.sendString(otherDevice.getName());
-		if (cmd == TRANSFER_IP) conn.sendIP(otherDevice.getInetAddress());
 		conn.sendInt(otherDevice.getPort());
+		if (cmd == TRANSFER_IP) conn.sendIP(otherDevice.getInetAddress());
 		conn.sendString(filename);
 	}
 	

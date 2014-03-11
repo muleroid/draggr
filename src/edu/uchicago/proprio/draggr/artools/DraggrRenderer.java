@@ -263,7 +263,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 				new Thread(new Runnable() {
 					public void run() {
 						while(true) {
-							SystemClock.sleep(50000);
+							SystemClock.sleep(10000);
 							for(DraggrFolderBase f : mFolders.values()) {
 								new UpdateFilesTask(f.getDevice(), "", f).execute();
 							}
