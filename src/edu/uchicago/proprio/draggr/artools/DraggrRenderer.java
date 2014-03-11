@@ -129,13 +129,13 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 	public void endDrag() {
 		if(mDraggedFolder != null) {
 			// find onScreenFolders to transfer to
-			/*Iterator<DraggrFolderBase> itr = onScreenFolders.iterator();
+			Iterator<DraggrFolderBase> itr = onScreenFolders.iterator();
 			while(itr.hasNext()) {
 				DraggrFolderBase cur = itr.next();
 				if(this.equals(cur))
 					continue;
 				mDraggedFolder.transfer(cur);
-			}*/
+			}
 			mDraggedFolder.releaseFile();
 		}
 		mDraggedFolder = null;
@@ -186,6 +186,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 
 		// set up view matrix
 		Matrix.setLookAtM(mDragViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+		Matrix.scaleM(mDragViewMatrix, 0, -1.0f, 1.0f, 1.0f);
 		
 		mActivity.loadingDialogHandler
         	.sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
@@ -262,7 +263,7 @@ public class DraggrRenderer implements GLSurfaceView.Renderer{
 				new Thread(new Runnable() {
 					public void run() {
 						while(true) {
-							SystemClock.sleep(5000);
+							SystemClock.sleep(50000);
 							for(DraggrFolderBase f : mFolders.values()) {
 								new UpdateFilesTask(f.getDevice(), "", f).execute();
 							}
