@@ -183,16 +183,23 @@ public class Server extends Thread {
 	
 	public static void main(String []args) {
 		try {
-			System.out.println("starting");
+			System.out.println("starting draggrd");
 			Server s = new Server(args[0], args[1], args[2]);
 			s.setLogLevel(TRACE);
 			s.start();
 			BufferedReader br = new BufferedReader(
 					new InputStreamReader(System.in));
 			String cmd;
-			Device localDevice = new Device(args[0]);
+			Device localDevice = new Device(args[0], new byte[] {
+					(byte) 172,
+					(byte) 16,
+					(byte) 42,
+					(byte) 101
+			});
 			if (!localDevice.tryConnect()) {
-				System.out.println("error connecting device");
+				System.out.println("error connecting local device");
+				while((cmd = br.readLine()) != null)
+					;
 			} else {
 				while ((cmd = br.readLine()) != null) {
 					if (cmd.startsWith("LIST_FILES")) {

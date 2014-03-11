@@ -33,6 +33,10 @@ public class Device {
 		this(name, Server.defaultPort, inetAddress);
 	}
 	
+	public Device (String name, int port) {
+		this(name, port, null);
+	}
+	
 	public Device (String name, int port, byte[] inetAddress) {
 		super();
 		this.name = name;
@@ -99,11 +103,6 @@ search:
 					
 					/* Scan through the 256 closest addresses for a match */
 					byte[] addr = a.getAddress();
-					/* TODO: TEMPORARY */
-					addr[0] = (byte) 10;
-					addr[1] = (byte) 150;
-					addr[2] = (byte) 118;
-					/* END TEMPORARY */
 					for (int i = 0; i < 256; i++) {
 						addr[3] = (byte) i;
 						try {
